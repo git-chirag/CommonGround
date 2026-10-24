@@ -4,7 +4,7 @@ Monorepo, two services, no database.
 
 ```
 backend/    FastAPI (Python). Run from backend/: uvicorn app.main:app --env-file .env --reload  (port 8000)
-frontend/   Next.js + React + TypeScript + Tailwind (planned; port 3000)
+frontend/   Next.js + React + TypeScript + Tailwind (port 3000; lib/api.ts is the only code that calls fetch)
 docs/       DEVELOPMENT_LOG.md
 .kiro/      steering + specs (committed on purpose)
 ```
@@ -25,12 +25,17 @@ Limits: 40 messages, 4000 chars per message, 16000 chars total. Blank messages a
 Success: `200 {"reply": "..."}`.
 Errors:
 - Provider errors: `{"detail": {"code": "...", "message": "<safe text>"}}` with 503, 504 or 502.
-- Request validation (FastAPI/Pydantic): `422 {"detail": [ {...}, ... ]}`, a list that can echo input. The frontend must not display it raw.
+- Request validation: `422 {"detail": [{loc, msg, type}, ...]}`; submitted input is deliberately not echoed. The frontend must not display it raw.
 - The frontend must also handle network failures and non-JSON responses.
 The browser never talks to the Kiro CLI; only the FastAPI server does.
 
-## Planned changes this milestone (backward compatible)
+## Implemented this milestone (backward compatible)
 - Optional `parenting_stage` enum field on the request, turned into extra system-prompt guidance in `app/prompts.py`.
 - CORS middleware with origins from `CORS_ALLOWED_ORIGINS` (default `http://localhost:3000`).
 
-See `.kiro/specs/frontend-chat-ui/` for the full spec.
+## Family context and RAG (added)
+- Request extras, all optional: `family_context {audience, own, shared}`, `retrieve_sources` (bool). Response extras (only when sources were requested): `grounding` ("retrieved"|"none"), `sources[]`.
+- `app/family_context.py`: allow-listed scoped fields -> prompt block. `app/rag/`: `corpus.py` (curated markdown + chunking), `retrieval.py` (BM25 behind the `Retriever` protocol; swap in embeddings by writing another class), `format.py` (passage labels, strips unknown `[S#]` markers). `python -m app.rag.ingest` validates the corpus.
+- Frontend: `AppShell` -> `ParentDashboard` / `TeenDashboard` (different layouts and `data-theme` token sets), shared `ChatPanel`, `lib/family/` (types, seed, store, context), one `useChat` per audience.
+
+See `.kiro/specs/frontend-chat-ui/` and `.kiro/specs/family-context-rag/` for the specs.

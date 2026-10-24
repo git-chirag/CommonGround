@@ -40,6 +40,7 @@ Tests and lint (no real CLI or login needed): `pytest` and `ruff check .`
 | `KIRO_CLI_PATH` | `kiro-cli` | Executable, server-side only |
 | `LLM_TIMEOUT_SECONDS` | `90` | Per-request timeout |
 | `LLM_MODEL` | (CLI default) | Passed as `--model`; see `kiro-cli chat --list-models` |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | Comma-separated browser origins allowed to call the API; `*` is refused |
 | `LLM_MAX_PROMPT_CHARS` | `24000` | Hard cap on the assembled prompt |
 | `LLM_MAX_CONCURRENT` | `2` | Max simultaneous CLI processes |
 

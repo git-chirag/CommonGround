@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #fbf7f0;
+  --color-paper: #ffffff;
+  --color-ink: #2b2a28;
+  --color-muted: #615c54;
+  --color-line: #e3dccf;
+  --color-forest: #1f4a43;
+  --color-sage: #2f6f6a;
+  --color-sage-dark: #245853;
+  --color-sage-soft: #e3efec;
+  --color-sand: #f4ecdc;
+  --color-clay: #9a3f2b;
+  --color-clay-soft: #fbece8;
+  --color-night: #16112b;
+  --color-lime: #c6f432;
+  --color-coral: #ff7a70;
+  --color-sky: #7dd3fc;
+  --color-lemon: #ffe066;
+  --color-lilac: #c4b5fd;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --font-sans: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, "Helvetica Neue",
+    Arial, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+/* Teen identity: same token names, different values, so shared components re-theme automatically. */
+[data-theme="teen"] {
+  --color-forest: #16112b;
+  --color-cream: #f3efff;
+  --color-paper: #ffffff;
+  --color-ink: #16112b;
+  --color-muted: #554e75;
+  --color-line: #cfc4f5;
+  --color-sage: #6d28d9;
+  --color-sage-dark: #5b21b6;
+  --color-sage-soft: #e9e2ff;
+  --color-sand: #fff3b0;
+  --color-clay: #b4123f;
+  --color-clay-soft: #ffe3ea;
+  color-scheme: light;
+}
+[data-theme="teen-dark"] {
+  --color-cream: #110e22;
+  --color-paper: #1d1936;
+  --color-ink: #f4f1ff;
+  --color-muted: #bdb5de;
+  --color-line: #3b3463;
+  --color-sage: #7c3aed;
+  --color-sage-dark: #6d28d9;
+  --color-sage-soft: #2b2352;
+  --color-sand: #2c2548;
+  --color-clay: #ff9db4;
+  --color-clay-soft: #3b1f2e;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-sage);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

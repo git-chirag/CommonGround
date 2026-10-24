@@ -14,6 +14,17 @@ class Settings:
     llm_model: str | None = None
     llm_max_prompt_chars: int = 24000
     llm_max_concurrent: int = 2
+    cors_allowed_origins: tuple[str, ...] = ("http://localhost:3000",)
+
+
+def _origins() -> tuple[str, ...]:
+    raw = os.environ.get("CORS_ALLOWED_ORIGINS", "").strip()
+    if not raw:
+        return ("http://localhost:3000",)
+    origins = tuple(o.strip().rstrip("/") for o in raw.split(",") if o.strip())
+    if "*" in origins:
+        raise ValueError("CORS_ALLOWED_ORIGINS must list explicit origins; '*' is not allowed.")
+    return origins
 
 
 def _float(name: str, default: float) -> float:
@@ -34,4 +45,5 @@ def load_settings() -> Settings:
         llm_model=os.environ.get("LLM_MODEL", "").strip() or None,
         llm_max_prompt_chars=_int("LLM_MAX_PROMPT_CHARS", 24000),
         llm_max_concurrent=_int("LLM_MAX_CONCURRENT", 2),
+        cors_allowed_origins=_origins(),
     )
