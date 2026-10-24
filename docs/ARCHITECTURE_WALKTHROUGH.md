@@ -93,7 +93,7 @@ The route, prompts, tests of the route, and the entire frontend are unchanged. T
 
 - The Kiro CLI provider works only on a machine where the CLI is installed and logged in. A deployed copy would not work, and a remote judge cannot use a local instance.
 - No RAG, citations, evidence grounding, or clinical/expert evaluation. Answers are model output with a stage hint.
-- The system prompt has no explicit crisis-handling guidance yet.
+- Crisis handling is a single prompt instruction (`SAFETY_LINE`), not a tested protocol.
 - Replies take several seconds (no streaming).
 - No persistence, accounts, or rate limiting.
 - Accessibility was built in and spot-checked, not audited with screen readers; WCAG conformance is not claimed.
@@ -121,3 +121,30 @@ flowchart LR
 - **Swapping retrieval later:** implement `Retriever.retrieve(query, k)` with embeddings or a vector DB and return it from `get_retriever()`. The route does not change.
 - **Honesty controls:** every source records how it was verified; the UI labels them as curated summaries; "retrieved" is not presented as "proved"; `cited` only means the model used the marker.
 - **Not secure isolation:** no accounts; the browser holds both example profiles.
+
+## Update: conversation-first UI and strict scoping
+
+```mermaid
+flowchart TB
+    subgraph Browser
+      PS[(parent profile)] --> PB[buildParentContext]
+      TS[(teen profile + reflections)] --> TB[buildTeenContext]
+      SH[(shared goals, routines,<br/>teen goals marked shared)] --> SV[sharedView]
+      SV --> PB
+      SV --> TB
+      PC[parent useChat history] --> PR[parent request]
+      PB --> PR
+      TC[teen useChat history] --> TR[teen request]
+      TB --> TR
+    end
+    PR --> API[FastAPI: allow-list per audience, stateless]
+    TR --> API
+    API --> CLI[kiro-cli in a fresh temp dir] --> DEL[delete that session transcript]
+```
+
+- **Why separate builders:** the parent builder's inputs are the parent profile and the shared projection, nothing else, so a bug cannot "accidentally" read a teen field; a runtime allow-list (`pick`) is the second guard and the backend allow-list the third. Reflections have no key anywhere.
+- **Why not prompt-based hiding:** a model asked to keep one side's secrets can still leak them. Here the other side's data is simply never in the request.
+- **Where it is proven:** `frontend/src/lib/family/context.test.ts` (builders), `frontend/src/components/AppShell.test.tsx` (screen + request body, chat histories both directions, toggle, shared goals), `backend/tests/test_privacy_boundary.py` (exact CLI argv, statelessness, logs, retrieval never driven by notes, session cleanup).
+- **Logging path found:** kiro-cli writes each call's transcript to `~/.kiro/sessions`. The provider now lists and deletes the session created in its unique temp dir, in the background. A probe confirmed a new call cannot recall an earlier one (memory is disabled for these sessions).
+- **UI flow:** `AppShell` holds both `useChat` hooks and the family store; `ChatPanel` (keyed by audience) fills the screen with the audience welcome as its empty state and the `ContextBar` above the composer; context pages are secondary and their action buttons switch back to the chat and send.
+- **Still not secure isolation:** one browser holds both example profiles and the switch is not a login.

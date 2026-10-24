@@ -1,4 +1,14 @@
-import type { Audience, FamilyContextPayload, FamilyState, Goal, GoalStatus, NurturingGoal, Scope } from "./types";
+import type {
+  Audience,
+  FamilyContextPayload,
+  FamilyState,
+  Goal,
+  GoalStatus,
+  NurturingGoal,
+  ParentPrivate,
+  Scope,
+  TeenPrivate,
+} from "./types";
 
 export const STATUS_LABEL: Record<GoalStatus, string> = { todo: "To do", doing: "In progress", done: "Done" };
 
@@ -35,39 +45,83 @@ export const FIELD_META: Record<string, { label: string; scope: Scope }> = {
   commitments: { label: "Shared commitments", scope: "shared" },
 };
 
-const compact = (rec: Record<string, string>) =>
-  Object.fromEntries(Object.entries(rec).filter(([, v]) => v.trim() !== "")) as Record<string, string>;
+// Explicit allow-lists. They mirror backend/app/family_context.py; a key not listed here is never sent.
+export const PARENT_OWN_KEYS = ["intentions", "values", "hopes", "concerns", "worldview", "nurturing_goals"] as const;
+export const TEEN_OWN_KEYS = ["interests", "strengths", "career_ideas", "aspirations", "personal_goals"] as const;
+export const SHARED_KEYS = ["shared_goals", "routines", "commitments"] as const;
+
+/** Keep only allow-listed, non-blank string values. The final filter on everything that leaves the browser. */
+function pick(allowed: readonly string[], rec: Record<string, unknown>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of allowed) {
+    const v = rec[key];
+    if (typeof v === "string" && v.trim() !== "") out[key] = v.trim();
+  }
+  return out;
+}
 
 /**
- * THE privacy boundary. The only function that decides which profile data may leave the browser.
- * - The current audience's own private fields, plus shared fields. Nothing from the other side.
- * - Teen reflections are never included.
- * - Returns null when there is nothing to send (context is optional).
+ * What the family has agreed to share, as seen by EITHER side: agreed family goals, teen goals the teen
+ * ticked "share", routines and commitments. This projection is the only route by which anything crosses.
+ */
+export interface SharedView {
+  goals: Goal[];
+  routines: string;
+  commitments: string;
+}
+
+export function sharedView(state: FamilyState): SharedView {
+  return { goals: visibleSharedGoals(state), routines: state.shared.routines, commitments: state.shared.commitments };
+}
+
+function sharedFields(shared: SharedView) {
+  return pick(SHARED_KEYS, {
+    shared_goals: fmtGoals(shared.goals),
+    routines: shared.routines,
+    commitments: shared.commitments,
+  });
+}
+
+const payload = (audience: Audience, own: Record<string, string>, shared: Record<string, string>) =>
+  Object.keys(own).length === 0 && Object.keys(shared).length === 0 ? null : { audience, own, shared };
+
+/**
+ * Parent-facing context. Takes ONLY the parent's own profile and the shared projection, so it has no way to
+ * read the teen's private fields, reflections, unshared goals or chat.
+ */
+export function buildParentContext(parent: ParentPrivate, shared: SharedView): FamilyContextPayload | null {
+  const own = pick(PARENT_OWN_KEYS, {
+    intentions: parent.intentions,
+    values: parent.values,
+    hopes: parent.hopes,
+    concerns: parent.concerns,
+    worldview: parent.worldview,
+    nurturing_goals: (parent.nurturingGoals ?? []).map((g) => NURTURING_LABEL[g]).join(", "),
+  });
+  return payload("parent", own, sharedFields(shared));
+}
+
+/**
+ * Teen-facing context. Takes ONLY the teen's own profile and the shared projection, so it cannot read the
+ * parent's private notes. Reflections are never read. Shared teen goals arrive via `shared`, not `own`.
+ */
+export function buildTeenContext(teen: TeenPrivate, shared: SharedView): FamilyContextPayload | null {
+  const own = pick(TEEN_OWN_KEYS, {
+    interests: teen.interests,
+    strengths: teen.strengths,
+    career_ideas: teen.careerIdeas,
+    aspirations: teen.aspirations,
+    personal_goals: fmtGoals((teen.goals ?? []).filter((g) => !g.shared)),
+  });
+  return payload("teen", own, sharedFields(shared));
+}
+
+/**
+ * THE privacy boundary: the only way the app turns profile data into request context.
+ * Each audience gets its own builder; only the shared projection is common to both.
+ * Returns null when there is nothing to send (context is optional).
  */
 export function buildFamilyContext(state: FamilyState, audience: Audience): FamilyContextPayload | null {
-  const own =
-    audience === "parent"
-      ? compact({
-          intentions: state.parent.intentions,
-          values: state.parent.values,
-          hopes: state.parent.hopes,
-          concerns: state.parent.concerns,
-          worldview: state.parent.worldview,
-          nurturing_goals: state.parent.nurturingGoals.map((g) => NURTURING_LABEL[g]).join(", "),
-        })
-      : compact({
-          interests: state.teen.interests,
-          strengths: state.teen.strengths,
-          career_ideas: state.teen.careerIdeas,
-          aspirations: state.teen.aspirations,
-          // Goals already shared appear under `shared`; only the unshared ones are teen-private.
-          personal_goals: fmtGoals(state.teen.goals.filter((g) => !g.shared)),
-        });
-  const shared = compact({
-    shared_goals: fmtGoals(visibleSharedGoals(state)),
-    routines: state.shared.routines,
-    commitments: state.shared.commitments,
-  });
-  if (Object.keys(own).length === 0 && Object.keys(shared).length === 0) return null;
-  return { audience, own, shared };
+  const shared = sharedView(state);
+  return audience === "parent" ? buildParentContext(state.parent, shared) : buildTeenContext(state.teen, shared);
 }

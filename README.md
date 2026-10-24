@@ -5,30 +5,30 @@ reply. It offers **general parenting support only: not medical or mental-health 
 emergencies**, and its answers have not been clinically reviewed.
 
 ## What works today
-- **Two dashboards** (switch at the top): a calm editorial **parent** view and an expressive **teen** view with an optional dark theme. Both use clearly labelled *fictional example profiles* that you can edit, save, and reset.
-- **Structured family context** with three visible scopes (parent-private, teen-private, shared). A "What the assistant can see" panel shows exactly what is sent. Teen reflections are never sent.
-- **Context-aware assistant**: balanced, nonjudgmental, aware of intention vs impact and teen autonomy; never diagnoses.
-- **Small real RAG pipeline**: a hand-curated library of summaries of real pages (UNICEF, Harvard Center on the Developing Child, CDC), chunked and searched with BM25. Answers show the **sources actually retrieved** with links; if nothing matches, the UI says so.
-- Chat basics: loading state, friendly errors with retry, new conversation, responsive and keyboard accessible.
-- FastAPI backend with a provider-independent LLM interface and a local **Kiro CLI** provider; stage and context sent as validated request metadata; limits, timeouts, CORS allow-list, no conversation logging.
+- **Conversation-first app** with two distinct experiences (switch at the top): a calm, editorial **parent** view and a bold, expressive **teen** view with optional dark mode. Each opens on a full-height chat with conversation starters; profile notes live one click away in **Family context** / **My space** (editable, saveable, resettable fictional examples).
+- **Strict audience scoping**: each request contains only the active person's chat, their own notes (if enabled) and what the family has explicitly shared. The other person's private notes, chats and the teen's reflections are never sent. A compact "What the assistant can see" bar above the composer shows exactly what goes out.
+- **Perspective support**: the assistant offers possibilities, not verdicts, about what another person might feel, says behavior alone can't establish a cause, suggests gentle openers, never pressures a teen to disclose, and points to real-world help if serious risk is described (prompt-level only).
+- **Small real RAG pipeline** over a curated library (UNICEF, Harvard Center on the Developing Child, CDC). Answers show the sources actually retrieved, or say none matched. Sources are general guidance, not evidence about a particular person.
+- FastAPI backend with a provider-independent LLM interface and a local **Kiro CLI** provider; limits, timeouts, CORS allow-list, no conversation logging, and automatic deletion of the CLI's saved session transcripts.
 
 ## Demo script (about 2 minutes, all fictional)
-1. Parent view: note the example profile (goals: critical thinking, independence; hope: a stable career for Sam) and the "What the assistant can see" panel.
-2. Click **"How can I talk with my teen about a career choice when my hopes differ…"**. The answer is balanced and shows retrieved sources (UNICEF, CDC) with links.
-3. Switch to **Teen view**: different layout and identity. Sam's career ideas and reflections are private; only the goal Sam ticked "Share with family" is visible to the parent. Try **Help me plan what to say**.
-4. Untick a shared goal, switch back, and see it disappear from the parent view. Toggle **Dark theme**.
-5. Ask something unrelated (for example "What is the capital of France?") to see the "no sourced guidance" message.
-6. Press **Reset demo** to repeat.
+1. Parent view opens on the chat. Click **Understand a perspective** ("My teen has become withdrawn lately..."). Note the answer offers possibilities with uncertainty and suggests a gentle opener.
+2. **New conversation** -> **Prepare a conversation** (career choice when hopes differ). The answer shows retrieved sources (UNICEF, CDC) with links.
+3. Open the "Personalised with..." bar above the composer to see exactly which notes are sent, then **Family context** to see/edit them. Only goals Sam chose to share appear there.
+4. Switch to **Teen view**: different identity, its own empty chat (the parent's conversation is not there). Try **Prepare for a hard talk**; toggle **Dark**. In **My space**, untick "Share with family" on a goal and switch back to see it vanish from the parent side.
+5. Untick **Use my profile notes** to show that only the question is sent.
+6. **Reset demo** to repeat.
 
 ## Privacy boundaries and limits (please read)
 - The browser holds **both** example profiles in `localStorage`; the view switch is a demo control, **not a login**. What the boundary guarantees is *what is sent to the assistant*, enforced in `buildFamilyContext` (frontend, tested) and per-audience allow-lists (backend, tested). **It is not secure isolation between real accounts.** Real use would need authentication and server-side storage.
-- The profile notes and your messages go to the model through the local Kiro CLI. Do not enter real family details in this prototype.
+- Privacy is enforced by what each request *contains* (separate audience builders, allow-lists on both ends, separate chat histories), not by asking the model to keep secrets. This is tested at the browser request and at the exact CLI argv.
+- The profile notes and your messages go to the model through the local Kiro CLI, under your Kiro account. The CLI saves each call as a local session transcript; the backend deletes those after each call by default. Do not enter real family details in this prototype.
 - Retrieved sources are **related reading, not proof** that each sentence of an answer is supported, and the model may cite imperfectly (unknown `[S#]` markers are stripped). Sources are *our condensed summaries*; check the original.
 - Some corpus entries are thin: the CDC pages could not be fetched by our tools, so only their opening sentences (from search results) are summarised, and the UI shows that basis. The "CDC Child Development Resources" page was **not** ingested because it could not be verified.
 - Retrieval is keyword-based (BM25), so paraphrased questions can miss relevant sources.
 
 ## What does not exist yet
-Crisis-handling guidance in the prompt, expert/clinical review, embeddings or a vector database, accounts, server-side persistence, streaming, a hosted LLM provider, and deployment.
+A reviewed crisis protocol (there is only a prompt-level instruction), expert/clinical review, embeddings or a vector database, accounts, server-side persistence, streaming, a hosted LLM provider, and deployment.
 
 ## Important limitation
 The LLM runs through **your locally installed, signed-in Kiro CLI**. That is a local development setup: it will not

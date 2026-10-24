@@ -6,11 +6,12 @@ import ThinkingIndicator from "./ThinkingIndicator";
 interface Props {
   messages: Message[];
   loading: boolean;
+  variant?: "parent" | "teen";
 }
 
 const NEAR_BOTTOM_PX = 80;
 
-export default function MessageList({ messages, loading }: Props) {
+export default function MessageList({ messages, loading, variant = "parent" }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const nearBottom = useRef(true);
 
@@ -35,11 +36,11 @@ export default function MessageList({ messages, loading }: Props) {
       role="log"
       aria-label="Conversation"
       aria-live="polite"
-      className="flex-1 overflow-y-auto px-4 py-4 sm:px-6"
+      className="min-h-0 flex-1 overflow-y-auto"
     >
-      <div className="flex flex-col gap-4">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-4">
         {messages.map((m, i) => (
-          <MessageBubble key={i} message={m} />
+          <MessageBubble key={i} message={m} variant={variant} />
         ))}
         {loading && <ThinkingIndicator />}
       </div>

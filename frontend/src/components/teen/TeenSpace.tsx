@@ -1,23 +1,17 @@
 import { useId, useState } from "react";
-import type { useChat } from "@/hooks/useChat";
 import { visibleSharedGoals, STATUS_LABEL } from "@/lib/family/context";
 import { PARENT_NAME, SEED_FAMILY, TEEN_NAME } from "@/lib/family/seed";
 import type { FamilyState } from "@/lib/family/types";
-import BoundaryPanel from "../shared/BoundaryPanel";
-import ChatPanel from "../shared/ChatPanel";
 import FieldGroupCard from "../shared/FieldGroupCard";
 import GoalList from "../shared/GoalList";
 import ScopeBadge from "../shared/ScopeBadge";
+import { TALK_QUESTION } from "./TeenWelcome";
 
 interface Props {
   state: FamilyState;
   update: (fn: (s: FamilyState) => FamilyState) => void;
-  chat: ReturnType<typeof useChat>;
-  ctxEnabled: boolean;
-  onToggleCtx: (v: boolean) => void;
+  /** Switch to the chat and send this question. */
   onAsk: (text: string) => void;
-  dark: boolean;
-  onToggleDark: () => void;
 }
 
 // Colored "sticker" cards. Local CSS variables keep text readable on the bright backgrounds in both themes.
@@ -37,7 +31,6 @@ const TALK_PROMPTS = [
   "What could I say if it starts to feel tense?",
 ];
 
-const TALK_QUESTION = `How do I talk to my parent about my future plans without it turning into an argument?`;
 
 function Reflections({ state, update }: Pick<Props, "state" | "update">) {
   const [text, setText] = useState("");
@@ -91,7 +84,8 @@ function Reflections({ state, update }: Pick<Props, "state" | "update">) {
   );
 }
 
-export default function TeenDashboard({ state, update, chat, ctxEnabled, onToggleCtx, onAsk, dark, onToggleDark }: Props) {
+// Secondary page: the teen's own space. Everything is private unless the teen shares it.
+export default function TeenSpace({ state, update, onAsk }: Props) {
   const t = state.teen;
   const setTeen = (patch: Partial<FamilyState["teen"]>) => update((s) => ({ ...s, teen: { ...s.teen, ...patch } }));
   const sharedGoals = visibleSharedGoals(state);
@@ -101,23 +95,15 @@ export default function TeenDashboard({ state, update, chat, ctxEnabled, onToggl
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="inline-block -rotate-2 rounded-md bg-lemon px-2 py-1 text-xs font-black uppercase tracking-widest text-night">
-            Teen dashboard · example profile (fictional)
+            My space · example profile (fictional)
           </p>
           <h1 className="mt-3 text-5xl font-black leading-none tracking-tighter sm:text-7xl">
             Hey {TEEN_NAME}<span className="text-sage">.</span>
           </h1>
           <p className="mt-3 max-w-prose text-lg text-muted">
-            Your interests, your goals, your pace. You decide what your family sees.
+            Your interests, goals and reflections. Private unless you choose to share. Use them to personalise your chats, or switch that off any time.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onToggleDark}
-          aria-pressed={dark}
-          className="min-h-11 rounded-full border-2 border-ink px-5 text-sm font-bold hover:bg-sage-soft"
-        >
-          {dark ? "Dark theme: on" : "Dark theme: off"}
-        </button>
       </header>
 
       <div className="grid items-start gap-4 md:grid-cols-6">
@@ -160,20 +146,6 @@ export default function TeenDashboard({ state, update, chat, ctxEnabled, onToggl
           </div>
         </div>
 
-        <ChatPanel
-          chat={chat}
-          heading="Think it through"
-          intro="Ask anything about your goals or a conversation you're dreading. It won't tell your parent what you say here."
-          suggestions={[
-            TALK_QUESTION,
-            "How can I explain why I'm excited about game design?",
-            "I feel nervous about a difficult conversation. How can I prepare?",
-          ]}
-          className="h-[36rem] border-2 !border-ink md:col-span-4"
-        />
-        <div className="md:col-span-2">
-          <BoundaryPanel audience="teen" state={state} enabled={ctxEnabled} onToggle={onToggleCtx} />
-        </div>
         <section className={`${card} bg-lemon md:col-span-4`} aria-labelledby="goals-h">
           <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
             <h2 id="goals-h" className={h2}>
@@ -188,6 +160,25 @@ export default function TeenDashboard({ state, update, chat, ctxEnabled, onToggl
         </section>
 
 
+        <section className="rounded-3xl border-2 border-dashed border-ink p-5 md:col-span-2" aria-labelledby="shared-h">
+          <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
+            <h2 id="shared-h" className="text-xl font-black tracking-tight">
+              What {PARENT_NAME} can see
+            </h2>
+            <ScopeBadge scope="shared" />
+          </div>
+          <ul className="flex flex-col gap-1 text-sm">
+            {sharedGoals.map((g) => (
+              <li key={g.id}>
+                {g.text} <span className="text-muted">({STATUS_LABEL[g.status]})</span>
+              </li>
+            ))}
+            {sharedGoals.length === 0 && <li className="text-muted">No goals shared yet.</li>}
+          </ul>
+          <p className="mt-2 text-xs text-muted">
+            Routines: {state.shared.routines || "none"} Commitments: {state.shared.commitments || "none"}
+          </p>
+        </section>
         <section className={`${card} bg-lilac md:col-span-3`} aria-labelledby="refl-h">
           <div className="mb-1 flex flex-wrap items-start justify-between gap-2">
             <h2 id="refl-h" className={h2}>
@@ -220,25 +211,6 @@ export default function TeenDashboard({ state, update, chat, ctxEnabled, onToggl
           </button>
         </section>
 
-        <section className="rounded-3xl border-2 border-dashed border-ink p-5 md:col-span-2" aria-labelledby="shared-h">
-          <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-            <h2 id="shared-h" className="text-xl font-black tracking-tight">
-              What {PARENT_NAME} can see
-            </h2>
-            <ScopeBadge scope="shared" />
-          </div>
-          <ul className="flex flex-col gap-1 text-sm">
-            {sharedGoals.map((g) => (
-              <li key={g.id}>
-                {g.text} <span className="text-muted">({STATUS_LABEL[g.status]})</span>
-              </li>
-            ))}
-            {sharedGoals.length === 0 && <li className="text-muted">No goals shared yet.</li>}
-          </ul>
-          <p className="mt-2 text-xs text-muted">
-            Routines: {state.shared.routines || "none"} Commitments: {state.shared.commitments || "none"}
-          </p>
-        </section>
 
       </div>
     </main>

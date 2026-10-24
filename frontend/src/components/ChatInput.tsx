@@ -12,9 +12,11 @@ interface Props {
   onSend: (text: string) => SendProblem | null;
   loading: boolean;
   inputRef: Ref<HTMLTextAreaElement>;
+  variant?: "parent" | "teen";
 }
 
-export default function ChatInput({ onSend, loading, inputRef }: Props) {
+export default function ChatInput({ onSend, loading, inputRef, variant = "parent" }: Props) {
+  const teen = variant === "teen";
   const [text, setText] = useState("");
   const [problem, setProblem] = useState<SendProblem | null>(null);
 
@@ -60,12 +62,16 @@ export default function ChatInput({ onSend, loading, inputRef }: Props) {
           placeholder="Share what's on your mind…"
           aria-describedby="message-hint"
           aria-invalid={problem !== null}
-          className="field-sizing-content max-h-40 min-h-14 flex-1 resize-none rounded-2xl border border-line bg-paper px-4 py-3"
+          className={`field-sizing-content max-h-40 min-h-14 flex-1 resize-none bg-paper px-4 py-3 text-ink ${
+            teen ? "rounded-3xl border-2 border-ink" : "rounded-2xl border border-line"
+          }`}
         />
         <button
           type="submit"
           disabled={loading}
-          className="min-h-14 rounded-2xl bg-sage px-5 font-medium text-white hover:bg-sage-dark disabled:opacity-60"
+          className={`min-h-14 bg-sage px-5 text-white hover:bg-sage-dark disabled:opacity-60 ${
+            teen ? "rounded-3xl border-2 border-ink font-black" : "rounded-2xl font-medium"
+          }`}
         >
           {loading ? "Sending…" : "Send"}
         </button>

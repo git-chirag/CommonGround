@@ -41,6 +41,7 @@ Tests and lint (no real CLI or login needed): `pytest` and `ruff check .`
 | `LLM_TIMEOUT_SECONDS` | `90` | Per-request timeout |
 | `LLM_MODEL` | (CLI default) | Passed as `--model`; see `kiro-cli chat --list-models` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | Comma-separated browser origins allowed to call the API; `*` is refused |
+| `KIRO_CLI_DELETE_SESSIONS` | `true` | Delete the CLI's saved session transcript after each call (see below) |
 | `LLM_MAX_PROMPT_CHARS` | `24000` | Hard cap on the assembled prompt |
 | `LLM_MAX_CONCURRENT` | `2` | Max simultaneous CLI processes |
 
@@ -55,6 +56,13 @@ prompt is embedded in the prompt text and `temperature` is ignored.
 
 Output is rejected (never partially returned) if the exit code is non-zero, stdout is empty, not valid UTF-8,
 or contains terminal control characters.
+
+Session transcripts: kiro-cli saves every call (the full prompt, including any family notes) as a session under
+`~/.kiro/sessions`. Verified on 2.34.0: these sessions have memory disabled and a fresh call cannot recall an earlier
+one, but the files stay on disk. With `KIRO_CLI_DELETE_SESSIONS=true` the provider runs `chat --list-sessions -f json`
+in the call's unique temp directory and `chat --delete-session <id>` for those sessions only, in a background thread
+(adds no latency; failures are logged as a count only). Sessions created before this setting existed are not removed
+automatically. Prompts are still processed by the Kiro service under your account.
 
 Known limits: the prompt travels in the process arguments, so it is visible to other local users via `ps`;
 I did not verify how the CLI behaves when logged out (auth detection is a keyword heuristic on stderr);

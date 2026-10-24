@@ -1,26 +1,20 @@
-import type { useChat } from "@/hooks/useChat";
 import { NURTURING_LABEL, visibleSharedGoals } from "@/lib/family/context";
 import { PARENT_NAME, SEED_FAMILY, TEEN_NAME } from "@/lib/family/seed";
 import type { FamilyState, NurturingGoal } from "@/lib/family/types";
 import { RESOURCES } from "@/lib/resources";
-import { suggestionsFor } from "@/lib/stages";
 import StagePicker from "../StagePicker";
-import BoundaryPanel from "../shared/BoundaryPanel";
-import ChatPanel from "../shared/ChatPanel";
 import FieldGroupCard from "../shared/FieldGroupCard";
 import GoalList from "../shared/GoalList";
 import ScopeBadge from "../shared/ScopeBadge";
+import { CAREER_QUESTION } from "./ParentWelcome";
 
 interface Props {
   state: FamilyState;
   update: (fn: (s: FamilyState) => FamilyState) => void;
-  chat: ReturnType<typeof useChat>;
-  ctxEnabled: boolean;
-  onToggleCtx: (v: boolean) => void;
+  /** Switch to the chat and send this question. */
   onAsk: (text: string) => void;
 }
 
-const CAREER_QUESTION = "How can I talk with my teen about a career choice when my hopes differ from their preference?";
 
 const PREP_PROMPTS = [
   "What am I hoping for, and what is underneath that hope?",
@@ -32,7 +26,8 @@ const PREP_PROMPTS = [
 const h2 = "font-serif text-2xl text-forest";
 const section = "border-t border-line pt-6";
 
-export default function ParentDashboard({ state, update, chat, ctxEnabled, onToggleCtx, onAsk }: Props) {
+// Secondary page: the detailed, optional notes that personalise the parent's chat.
+export default function ParentContextPage({ state, update, onAsk }: Props) {
   const p = state.parent;
   const setParent = (patch: Partial<FamilyState["parent"]>) => update((s) => ({ ...s, parent: { ...s.parent, ...patch } }));
   const toggleGoal = (g: NurturingGoal) =>
@@ -40,16 +35,16 @@ export default function ParentDashboard({ state, update, chat, ctxEnabled, onTog
   const sharedFromTeen = state.teen.goals.filter((g) => g.shared);
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-10 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_25rem] lg:px-8">
-      <main className="flex flex-col gap-8">
+    <div className="mx-auto max-w-4xl px-4 py-8 lg:px-8">
+      <div className="flex flex-col gap-8">
         <header>
-          <p className="text-sm uppercase tracking-widest text-muted">Parent dashboard · example profile (fictional)</p>
-          <h1 className="mt-2 font-serif text-4xl leading-tight text-forest sm:text-5xl">
-            Welcome, {PARENT_NAME}.
-          </h1>
+          <p className="text-sm uppercase tracking-widest text-muted">
+            Family context · {PARENT_NAME}&apos;s example profile (fictional)
+          </p>
+          <h1 className="mt-2 font-serif text-4xl leading-tight text-forest sm:text-5xl">Your family context</h1>
           <p className="mt-3 max-w-prose text-lg text-muted">
-            A calm place to clarify what you value, understand where {TEEN_NAME} is coming from, and prepare for the
-            conversations that matter.
+            Optional notes that personalise your chats. Your private notes are never sent with {TEEN_NAME}&apos;s
+            chats, and you only see what {TEEN_NAME} chooses to share. You can switch personalisation off in the chat.
           </p>
         </header>
 
@@ -233,25 +228,8 @@ export default function ParentDashboard({ state, update, chat, ctxEnabled, onTog
           </ul>
           <p className="mt-3 text-xs text-muted">Links go to the original publishers. We have not reviewed them clinically.</p>
         </section>
-      </main>
+      </div>
 
-      <aside className="flex flex-col gap-3 lg:sticky lg:top-24 lg:h-[calc(100dvh-7rem)] lg:min-h-[30rem] lg:self-start">
-        <ChatPanel
-          chat={chat}
-          heading="Talk it through"
-          intro="Ask about anything on your mind. Answers consider your profile notes, but not what your teen keeps private."
-          suggestions={[CAREER_QUESTION, ...suggestionsFor(p.stage).slice(0, 2)]}
-          className="h-[34rem] shrink-0 lg:h-auto lg:min-h-0 lg:flex-1"
-        />
-        <BoundaryPanel
-          audience="parent"
-          state={state}
-          enabled={ctxEnabled}
-          onToggle={onToggleCtx}
-          defaultOpen={false}
-          className="max-h-60 shrink-0 overflow-y-auto"
-        />
-      </aside>
     </div>
   );
 }

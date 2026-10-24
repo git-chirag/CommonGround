@@ -9,3 +9,10 @@
 7. Sources shown with real titles and links; if nothing relevant is retrieved the UI says so; unknown `[S#]` markers are removed; no claim that retrieval proves a statement.
 8. Existing API contract and tests keep working: new request/response fields are optional and additive.
 9. A fictional demo flow (parent career question with differing hopes) works repeatably in the browser and is resettable.
+
+## Iteration 2: conversation-first UX and strict scoping
+10. Chat is the primary surface for both audiences (full-height conversation, anchored composer, starters, loading/error/retry, sources under answers, compact expandable context bar). Profile editors move to a secondary page and keep all functionality.
+11. Separate audience-scoped context builders with explicit allow-lists; the only cross-audience data is the shared projection (family goals, teen goals the teen shared, routines, commitments). Separate chat histories. No derived summaries.
+12. Automated tests inspect the complete outbound provider request (CLI argv) and the browser request body to prove private fields and chat messages cannot cross audiences, including shared goals and the context toggle.
+13. Perspective support: uncertainty-aware possibilities, behavior is not proof of cause, gentle openers, no pressure on teens to disclose, risk -> point to real-world help without diagnosing.
+14. Sources state that retrieved guidance is general and not evidence of what a particular family member is experiencing.

@@ -58,3 +58,27 @@ Only things that actually happened.
 - Whether the model cites correctly is not guaranteed; only unknown markers are stripped.
 - Keyboard-only and screen-reader use not tested by hand; no accessibility audit.
 - Retrieval is lexical; paraphrases can miss. The corpus is small and partly thin (see above).
+
+## Milestone 4: conversation-first UX and strict privacy scoping
+**Kiro features used:** steering (product direction, architecture, privacy rules updated) and the existing `family-context-rag` spec (iteration 2 added to requirements, design and tasks). No hooks, MCP or powers.
+
+**Review findings**
+- Context flow was already one-audience-per-request with backend allow-lists; refactored into separate audience builders over a shared projection with explicit allow-lists.
+- New finding: kiro-cli saves every call (full prompt, including family notes) in `~/.kiro/sessions`. 25 such sessions from earlier testing were found (fictional data only). Sessions had `memoryConfig.mode = disabled`; a two-call probe with a random code word showed no recall. Added background deletion of each call's session (`KIRO_CLI_DELETE_SESSIONS`, default on). The 25 older sessions were NOT deleted automatically (outside the repo; left for the user to decide).
+- No frontend `console` logging; backend logs only categories/durations (now asserted by a test).
+
+**Work done**
+- UI: `AppHeader`, full-height `ChatPanel`, `ContextBar`, `ParentWelcome`, `TeenWelcome`; old dashboards became `ParentContextPage` / `TeenSpace` (editors preserved). `FormattedText` renders `**bold**` safely. Compact disclaimer.
+- Prompt: `PERSPECTIVE_GUIDELINES`, audience-specific focus, `SAFETY_LINE` (prompt-only).
+- Tests: backend `conftest.py` blocks real subprocesses in all tests; `test_privacy_boundary.py` (24 tests). Frontend: AppShell suite rewritten for the new layout (34 tests), builder tests (+4), formatter tests (3).
+- Test bugs fixed along the way: browser checks used `innerText` (affected by CSS uppercase), and image reads of overwritten screenshots returned cached copies, so screenshots were re-copied under new names before review.
+
+**Checks run (2026-10-24)**
+- Backend: `pytest` 108 passed; `ruff check .` clean.
+- Frontend: eslint, `tsc` clean; Vitest 62 passed; `next build` succeeded.
+- Real browser + real Kiro CLI: 21/21 (chat fills 89% of a desktop viewport and 73% on 375px, composer always visible; withdrawn question gives uncertain, non-disclosing guidance with an opener; sources match metadata; teen request contains only the teen's message; parent history preserved; toggle off; no new CLI transcripts left on disk after 4 calls).
+
+**Not verified / limits**
+- Reply-quality checks are keyword heuristics on single samples, not an evaluation.
+- Keyboard-only and screen-reader passes not done by hand.
+- The safety line is not a crisis protocol.

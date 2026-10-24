@@ -7,4 +7,9 @@
 - [x] 5. Frontend: parent and teen dashboards, demo bar, boundary panel, reset
 - [x] 6. Integration tests (Vitest) and real-browser demo run (23 checks)
 - [x] 7. Docs: README, architecture walkthrough, development log
-- [ ] 8. Future: crisis-handling guidance, embeddings/vector store, expert review of the corpus, hosted provider, real authentication
+- [x] 8. Conversation-first layout; profile editors moved to Family context / My space
+- [x] 9. Audience-scoped builders + shared projection; boundary tests (frontend payload, backend CLI argv, logs)
+- [x] 10. Perspective-support and risk lines in the prompt
+- [x] 11. CLI session-transcript cleanup + cross-session recall probe
+- [x] 12. Real-browser run (21 checks) and docs
+- [ ] 13. Future: a reviewed crisis protocol (beyond the prompt line), embeddings/vector store, expert review of the corpus, hosted provider, real authentication

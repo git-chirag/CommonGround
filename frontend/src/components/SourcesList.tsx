@@ -22,6 +22,9 @@ export default function SourcesList({ grounding, sources }: Props) {
         Related passages found in CommonGround&apos;s small curated library (our own condensed summaries of these pages).
         Labels like [S1] in the answer point here. Check the original page before relying on it.
       </p>
+      <p className="mt-1 text-muted">
+        This is general guidance. It can&apos;t tell you what a particular person in your family is thinking or feeling.
+      </p>
       <ol className="mt-2 flex flex-col gap-2">
         {sources.map((s) => (
           <li key={s.id}>

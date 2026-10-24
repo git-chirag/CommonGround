@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { buildFamilyContext, visibleSharedGoals } from "./context";
+import {
+  buildFamilyContext,
+  buildParentContext,
+  buildTeenContext,
+  PARENT_OWN_KEYS,
+  SHARED_KEYS,
+  sharedView,
+  TEEN_OWN_KEYS,
+  visibleSharedGoals,
+} from "./context";
 import { SEED_FAMILY } from "./seed";
-import type { FamilyState } from "./types";
+import type { FamilyState, ParentPrivate, TeenPrivate } from "./types";
 
 // Unique markers so we can prove nothing leaks across scopes.
 const P = "PARENT-ONLY-MARKER";
@@ -87,5 +96,45 @@ describe("buildFamilyContext", () => {
     expect(p).toContain("Build and release a small game");
     expect(p).not.toContain("Game design or software engineering");
     expect(p).not.toContain("nervous bringing up");
+  });
+});
+
+describe("audience-scoped builders", () => {
+  it("each builder only accepts its own profile plus the shared projection", () => {
+    const s = state();
+    const shared = sharedView(s);
+    expect(JSON.stringify(buildParentContext(s.parent, shared))).not.toContain(T);
+    expect(JSON.stringify(buildTeenContext(s.teen, shared))).not.toContain(P);
+  });
+
+  it("runtime allow-lists drop fields that were smuggled into a profile object", () => {
+    const s = state();
+    const shared = sharedView(s);
+    const dirtyParent = { ...s.parent, careerIdeas: T, reflections: [{ id: "x", text: REFLECTION }] } as unknown as ParentPrivate;
+    const dirtyTeen = { ...s.teen, hopes: P, concerns: P, worldview: P } as unknown as TeenPrivate;
+    const p = buildParentContext(dirtyParent, shared)!;
+    const t = buildTeenContext(dirtyTeen, shared)!;
+    expect(JSON.stringify(p)).not.toContain(T);
+    expect(JSON.stringify(p)).not.toContain(REFLECTION);
+    expect(JSON.stringify(t)).not.toContain(P);
+    expect(Object.keys(p.own).every((k) => (PARENT_OWN_KEYS as readonly string[]).includes(k))).toBe(true);
+    expect(Object.keys(t.own).every((k) => (TEEN_OWN_KEYS as readonly string[]).includes(k))).toBe(true);
+    expect(Object.keys(p.shared).every((k) => (SHARED_KEYS as readonly string[]).includes(k))).toBe(true);
+  });
+
+  it("the shared projection holds only family goals and goals the teen ticked to share", () => {
+    const v = sharedView(state());
+    expect(v.goals.map((g) => g.text)).toEqual(["FAMILY-GOAL", "SHARED-TEEN-GOAL"]);
+    expect(JSON.stringify(v)).not.toContain("PRIVATE-TEEN-GOAL");
+    expect(JSON.stringify(v)).not.toContain(REFLECTION);
+  });
+
+  it("a goal the parent adds to the shared list reaches the teen; parent-private edits do not", () => {
+    const s = state();
+    s.shared.goals.push({ id: "p", text: "PARENT-ADDED-SHARED-GOAL", status: "todo", shared: true });
+    s.parent.concerns = "PARENT-PRIVATE-EDIT";
+    const t = JSON.stringify(buildFamilyContext(s, "teen"));
+    expect(t).toContain("PARENT-ADDED-SHARED-GOAL");
+    expect(t).not.toContain("PARENT-PRIVATE-EDIT");
   });
 });

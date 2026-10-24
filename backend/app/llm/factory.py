@@ -21,6 +21,7 @@ def _build_kiro_cli(s: Settings) -> LLMProvider:
         model=s.llm_model,
         max_prompt_chars=s.llm_max_prompt_chars,
         max_concurrent=s.llm_max_concurrent,
+        delete_sessions=s.kiro_cli_delete_sessions,
     )
 
 

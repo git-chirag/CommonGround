@@ -15,6 +15,7 @@ class Settings:
     llm_max_prompt_chars: int = 24000
     llm_max_concurrent: int = 2
     cors_allowed_origins: tuple[str, ...] = ("http://localhost:3000",)
+    kiro_cli_delete_sessions: bool = True
 
 
 def _origins() -> tuple[str, ...]:
@@ -25,6 +26,17 @@ def _origins() -> tuple[str, ...]:
     if "*" in origins:
         raise ValueError("CORS_ALLOWED_ORIGINS must list explicit origins; '*' is not allowed.")
     return origins
+
+
+def _bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    if raw in ("1", "true", "yes", "on"):
+        return True
+    if raw in ("0", "false", "no", "off"):
+        return False
+    raise ValueError(f"{name} must be true or false.")
 
 
 def _float(name: str, default: float) -> float:
@@ -46,4 +58,5 @@ def load_settings() -> Settings:
         llm_max_prompt_chars=_int("LLM_MAX_PROMPT_CHARS", 24000),
         llm_max_concurrent=_int("LLM_MAX_CONCURRENT", 2),
         cors_allowed_origins=_origins(),
+        kiro_cli_delete_sessions=_bool("KIRO_CLI_DELETE_SESSIONS", True),
     )
