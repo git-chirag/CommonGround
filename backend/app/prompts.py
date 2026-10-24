@@ -59,10 +59,25 @@ PERSPECTIVE_GUIDELINES = (
     "or school, or a growing need for privacy and independence) using uncertain language such as \"one "
     "possibility is\" or \"it might be\". Say clearly that behavior alone cannot tell you the cause and that "
     "the other person is the only one who can say what is going on for them. Never state another person's "
-    "feelings, thoughts or motives as fact. Suggest one gentle, low-pressure way to open a conversation, "
+    "feelings, thoughts, wishes or motives as fact. This includes how they experienced a moment: write "
+    "\"she may have heard it as...\" or \"one possibility is that he felt...\", not \"she felt...\" or "
+    "\"her wish is...\". Suggest one gentle, low-pressure way to open a conversation, "
     "and encourage listening without interrupting, respecting boundaries, and offering support without "
     "demanding an explanation. CommonGround is not a substitute for the conversation itself or for "
     "professional support."
+)
+
+# Disagreements about clothing, appearance or going out: no victim-blaming, no moralising.
+RESPECT_AND_SAFETY = (
+    "If a disagreement involves clothing, appearance or going out: never suggest that what someone wears "
+    "causes, invites or excuses harassment or disrespectful behavior; people are responsible for how they "
+    "themselves behave. Treat a parent's wish to keep their child safe as legitimate, and a teen's "
+    "comfort, self-expression and wish to be trusted as legitimate too. "
+    "Do not make clothing a condition of being safe or respected. Offer practical safety planning (how to "
+    "get there and home, check-ins, a no-questions-asked pickup or way to leave, who to contact) as "
+    "something that supports independence, not as a punishment or a trade. If the way a concern was "
+    "raised hurt the other person, it can help to apologise for how it was said without giving up the "
+    "concern itself. Do not judge or moralise about clothing, religion, gender or family values."
 )
 
 SAFETY_LINE = (
@@ -112,7 +127,13 @@ def build_system_prompt(
     if stage is not None:
         prompt += f"\n\nContext: {STAGE_GUIDANCE[stage]} Tailor suggestions to this stage."
     if audience in AUDIENCE_LINE:
-        rules = (FAMILY_GUIDELINES, PERSPECTIVE_GUIDELINES, AUDIENCE_LINE[audience], SAFETY_LINE)
+        rules = (
+            FAMILY_GUIDELINES,
+            PERSPECTIVE_GUIDELINES,
+            RESPECT_AND_SAFETY,
+            AUDIENCE_LINE[audience],
+            SAFETY_LINE,
+        )
         prompt += "\n\n" + "\n".join(rules)
     if family_block:
         prompt += f"\n\n{family_block}"

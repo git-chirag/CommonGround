@@ -1,7 +1,6 @@
-import { PARENT_NAME, TEEN_NAME } from "@/lib/family/seed";
 import type { Audience } from "@/lib/family/types";
 
-export type Section = "chat" | "context";
+export type Section = "chat" | "plan" | "context";
 
 interface Props {
   audience: Audience;
@@ -11,6 +10,10 @@ interface Props {
   onReset: () => void;
   dark: boolean;
   onToggleDark: () => void;
+  parentName: string;
+  teenName: string;
+  /** Demo mode: show the "live AI is off" notice. */
+  liveDisabled?: boolean;
 }
 
 const VIEWS: { id: Audience; label: string }[] = [
@@ -31,8 +34,19 @@ const pill = (active: boolean) =>
   `min-h-11 rounded-full px-3 text-sm font-medium sm:px-4 ${active ? "bg-sage text-white" : "text-ink hover:bg-sage-soft"}`;
 
 // Compact header: brand, who is "signed in" for the demo, Chat / context navigation, view switch and reset.
-export default function AppHeader({ audience, onAudience, section, onSection, onReset, dark, onToggleDark }: Props) {
-  const name = audience === "parent" ? PARENT_NAME : TEEN_NAME;
+export default function AppHeader({
+  audience,
+  onAudience,
+  section,
+  onSection,
+  onReset,
+  dark,
+  onToggleDark,
+  parentName,
+  teenName,
+  liveDisabled = false,
+}: Props) {
+  const name = audience === "parent" ? parentName : teenName;
   const contextLabel = audience === "parent" ? "Family context" : "My space";
 
   return (
@@ -54,6 +68,14 @@ export default function AppHeader({ audience, onAudience, section, onSection, on
             className={pill(section === "chat")}
           >
             Chat
+          </button>
+          <button
+            type="button"
+            aria-current={section === "plan" ? "page" : undefined}
+            onClick={() => onSection("plan")}
+            className={pill(section === "plan")}
+          >
+            Plan
           </button>
           <button
             type="button"
@@ -103,6 +125,12 @@ export default function AppHeader({ audience, onAudience, section, onSection, on
           </button>
         </div>
       </div>
+      {liveDisabled && (
+        <p role="note" className="bg-ink px-4 py-1.5 text-center text-xs font-medium text-cream">
+          Interactive prototype: live AI responses are turned off. Explore the views, scenarios, plans and sharing;
+          pre-written examples are clearly labelled.
+        </p>
+      )}
       <p className="bg-sand px-4 py-1 text-center text-[11px] text-ink sm:text-xs">
         Prototype with fictional example profiles stored in this browser. The view switch is for demos, not a login.
       </p>

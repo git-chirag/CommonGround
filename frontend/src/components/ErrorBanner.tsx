@@ -7,6 +7,7 @@ const COPY: Record<ChatErrorKind, string> = {
   failed: "I couldn't put a response together. Please try again.",
   invalid: "Please check your message and try again.",
   network: "Can't reach CommonGround right now. Check your connection and try again.",
+  disabled: "Live AI responses are turned off in this demo.",
 };
 
 interface Props {

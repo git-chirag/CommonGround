@@ -1,15 +1,15 @@
 import { useId, useState } from "react";
 import { visibleSharedGoals, STATUS_LABEL } from "@/lib/family/context";
-import { PARENT_NAME, SEED_FAMILY, TEEN_NAME } from "@/lib/family/seed";
+import type { Scenario } from "@/lib/family/scenarios";
 import type { FamilyState } from "@/lib/family/types";
 import FieldGroupCard from "../shared/FieldGroupCard";
 import GoalList from "../shared/GoalList";
 import ScopeBadge from "../shared/ScopeBadge";
-import { TALK_QUESTION } from "./TeenWelcome";
 
 interface Props {
   state: FamilyState;
   update: (fn: (s: FamilyState) => FamilyState) => void;
+  scenario: Scenario;
   /** Switch to the chat and send this question. */
   onAsk: (text: string) => void;
 }
@@ -85,7 +85,8 @@ function Reflections({ state, update }: Pick<Props, "state" | "update">) {
 }
 
 // Secondary page: the teen's own space. Everything is private unless the teen shares it.
-export default function TeenSpace({ state, update, onAsk }: Props) {
+export default function TeenSpace({ state, update, scenario, onAsk }: Props) {
+  const { parentName: PARENT_NAME, teenName: TEEN_NAME, seed: SEED_FAMILY } = scenario;
   const t = state.teen;
   const setTeen = (patch: Partial<FamilyState["teen"]>) => update((s) => ({ ...s, teen: { ...s.teen, ...patch } }));
   const sharedGoals = visibleSharedGoals(state);
@@ -107,6 +108,17 @@ export default function TeenSpace({ state, update, onAsk }: Props) {
       </header>
 
       <div className="grid items-start gap-4 md:grid-cols-6">
+        <FieldGroupCard
+          className={`${card} bg-coral md:col-span-6`}
+          headingClass={h2}
+          title="What's going on"
+          description="In your own words. Private to you. It can help the assistant understand, and it is never shown or sent to your parent."
+          scope="teen_private"
+          fields={[{ key: "situation", label: "What's happening right now (optional)" }]}
+          values={{ situation: t.situation ?? "" }}
+          onSave={(v) => setTeen({ situation: v.situation })}
+          onReset={() => setTeen({ situation: SEED_FAMILY.teen.situation ?? "" })}
+        />
         <FieldGroupCard
           className={`${card} bg-lime md:col-span-3`}
           headingClass={h2}
@@ -204,7 +216,7 @@ export default function TeenSpace({ state, update, onAsk }: Props) {
           </ul>
           <button
             type="button"
-            onClick={() => onAsk(TALK_QUESTION)}
+            onClick={() => onAsk(scenario.teenDemoPrompt)}
             className="min-h-11 rounded-full bg-night px-5 text-sm font-bold text-white hover:opacity-90"
           >
             Help me plan what to say

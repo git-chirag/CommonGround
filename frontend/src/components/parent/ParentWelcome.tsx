@@ -1,37 +1,29 @@
-import { PARENT_NAME, TEEN_NAME } from "@/lib/family/seed";
+import type { Scenario } from "@/lib/family/scenarios";
 import { suggestionsFor } from "@/lib/stages";
 import type { ParentingStage } from "@/lib/types";
 
-// Exported so the context page and tests reuse the exact demo wording.
-export const CAREER_QUESTION =
-  "How can I talk with my teen about a career choice when my hopes differ from their preference?";
-export const WITHDRAWN_QUESTION = "My teen has become withdrawn lately. What might be going on, and how can I check in gently?";
-
-const STARTERS = [
-  { intent: "Understand a perspective", question: WITHDRAWN_QUESTION },
-  { intent: "Prepare a conversation", question: CAREER_QUESTION },
-  { intent: "How might this land?", question: "How might my teen hear this: \u201cWe need to talk about your grades tonight\u201d?" },
-  { intent: "Clarify my intentions", question: "I want to protect my teen without controlling them. How can I tell the difference?" },
-];
-
 interface Props {
+  scenario: Scenario;
   stage: ParentingStage | null;
   onPick: (q: string) => void;
+  /** Demo mode: returns true for starters that have a pre-written example answer. */
+  hasExample?: (q: string) => boolean;
 }
 
 // Editorial, calm empty state for the parent: serif type, quiet cards, one clear promise.
-export default function ParentWelcome({ stage, onPick }: Props) {
+export default function ParentWelcome({ scenario, stage, onPick, hasExample }: Props) {
+  const { parentName, teenName, parentStarters } = scenario;
   const more = suggestionsFor(stage).slice(0, 2);
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-muted">Parent · example profile</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-muted">Parent · example profile · {scenario.label}</p>
         <h1 className="mt-2 font-serif text-4xl leading-tight text-forest sm:text-5xl">
-          What&apos;s on your mind, {PARENT_NAME}?
+          What&apos;s on your mind, {parentName}?
         </h1>
         <p className="mt-3 max-w-prose text-muted">
           Think through possible perspectives, get clear on what you intend, and prepare for a real conversation with{" "}
-          {TEEN_NAME}. CommonGround can&apos;t tell you what {TEEN_NAME} is thinking. Only {TEEN_NAME} can.
+          {teenName}. CommonGround can&apos;t tell you what {teenName} is thinking. Only {teenName} can.
         </p>
       </div>
 
@@ -40,14 +32,19 @@ export default function ParentWelcome({ stage, onPick }: Props) {
           Start with a question
         </h2>
         <ul className="grid gap-3 sm:grid-cols-2">
-          {STARTERS.map((s) => (
-            <li key={s.intent}>
+          {parentStarters.map((s) => (
+            <li key={s.tag}>
               <button
                 type="button"
                 onClick={() => onPick(s.question)}
                 className="flex h-full min-h-11 w-full flex-col gap-1 rounded-2xl border border-line bg-paper p-4 text-left hover:border-sage hover:bg-sage-soft"
               >
-                <span className="text-xs font-semibold uppercase tracking-wider text-sage">{s.intent}</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-sage">{s.tag}</span>
+                {hasExample?.(s.question) && (
+                  <span className="self-start rounded-full border border-current px-2 text-[11px] font-medium">
+                    Pre-written example
+                  </span>
+                )}
                 <span className="text-sm text-ink">{s.question}</span>
               </button>
             </li>

@@ -9,9 +9,14 @@ import AppHeader, { type Section } from "./AppHeader";
 import ParentContextPage from "./parent/ParentContextPage";
 import ParentWelcome from "./parent/ParentWelcome";
 import ChatPanel from "./shared/ChatPanel";
+import ConversationPlan from "./shared/ConversationPlan";
 import ContextBar from "./shared/ContextBar";
 import TeenSpace from "./teen/TeenSpace";
 import TeenWelcome from "./teen/TeenWelcome";
+import ScenarioPicker from "./ScenarioPicker";
+import type { ScenarioId } from "@/lib/family/scenarios";
+import { isDemoMode } from "@/lib/config";
+import { demoExampleFor, hasDemoExample } from "@/lib/demoExamples";
 
 /**
  * Composition root. Chat is the primary section; profile editors are secondary.
@@ -21,7 +26,9 @@ import TeenWelcome from "./teen/TeenWelcome";
  * that audience's private notes (if enabled) and the shared projection.
  */
 export default function AppShell() {
-  const { state, update, reset } = useFamily();
+  const { state, update, reset, scenario, loadScenario } = useFamily();
+  // Demo mode (public prototype): no chat requests are ever made; guided starters show pre-written examples.
+  const demo = isDemoMode() ? demoExampleFor : null;
   const [audience, setAudience] = useState<Audience>("parent");
   const [section, setSection] = useState<Section>("chat");
   const [dark, setDark] = useState(false);
@@ -31,10 +38,12 @@ export default function AppShell() {
     stage: state.parent.stage,
     familyContext: ctxEnabled.parent ? buildFamilyContext(state, "parent") : null,
     retrieveSources: true,
+    demo,
   });
   const teenChat = useChat({
     familyContext: ctxEnabled.teen ? buildFamilyContext(state, "teen") : null,
     retrieveSources: true,
+    demo,
   });
   const chat = audience === "parent" ? parentChat : teenChat;
 
@@ -46,12 +55,20 @@ export default function AppShell() {
     setSection("chat");
     chat.send(text);
   };
-  const resetDemo = () => {
-    reset();
+  const clearSession = () => {
     parentChat.reset();
     teenChat.reset();
     setCtxEnabled({ parent: true, teen: true });
     setSection("chat");
+  };
+  // Reset restores the CURRENT scenario's fictional seed and clears both chats.
+  const resetDemo = () => {
+    reset();
+    clearSession();
+  };
+  const pickScenario = (id: ScenarioId) => {
+    loadScenario(id);
+    clearSession();
   };
 
   const theme = audience === "parent" ? "parent" : dark ? "teen-dark" : "teen";
@@ -62,6 +79,7 @@ export default function AppShell() {
       enabled={ctxEnabled[audience]}
       onToggle={(v) => setCtxEnabled((c) => ({ ...c, [audience]: v }))}
       onEdit={() => setSection("context")}
+      liveDisabled={!!demo}
     />
   );
 
@@ -75,7 +93,11 @@ export default function AppShell() {
         onReset={resetDemo}
         dark={dark}
         onToggleDark={() => setDark((d) => !d)}
+        parentName={scenario.parentName}
+        teenName={scenario.teenName}
+        liveDisabled={!!demo}
       />
+      <ScenarioPicker current={scenario.id} onPick={pickScenario} />
       <main className="flex min-h-0 flex-1 flex-col">
         {section === "chat" ? (
           <ChatPanel
@@ -84,20 +106,30 @@ export default function AppShell() {
             chat={chat}
             variant={audience}
             contextBar={contextBar}
+            liveDisabled={!!demo}
             emptyState={(send) =>
               audience === "parent" ? (
-                <ParentWelcome stage={state.parent.stage} onPick={send} />
+                <ParentWelcome
+                  scenario={scenario}
+                  stage={state.parent.stage}
+                  onPick={send}
+                  hasExample={demo ? hasDemoExample : undefined}
+                />
               ) : (
-                <TeenWelcome onPick={send} />
+                <TeenWelcome scenario={scenario} onPick={send} hasExample={demo ? hasDemoExample : undefined} />
               )
             }
           />
+        ) : section === "plan" ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <ConversationPlan audience={audience} scenario={scenario} state={state} update={update} onAsk={ask} />
+          </div>
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto">
             {audience === "parent" ? (
-              <ParentContextPage state={state} update={update} onAsk={ask} />
+              <ParentContextPage state={state} update={update} scenario={scenario} onAsk={ask} />
             ) : (
-              <TeenSpace state={state} update={update} onAsk={ask} />
+              <TeenSpace state={state} update={update} scenario={scenario} onAsk={ask} />
             )}
           </div>
         )}

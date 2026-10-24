@@ -25,7 +25,9 @@ _STOP = set(
     "under until up very was we were what when where which while who whom why will with would you your yours "
     # words too common in this domain to prove relevance on their own
     "parent parents child children family kid kids help want need get make thing things way ways "
-    "tell say talk ask should".split()
+    "tell say talk ask should "
+    # filler that carries no topic ("came across", "people", "now")
+    "people person came come across left now might maybe really still".split()
 )
 
 # Tiny synonym/alias map so "teenager", "adolescent" etc. all reach the same stem.
@@ -35,6 +37,11 @@ _ALIASES = {
     "listening": "listen", "opinions": "opinion", "careers": "career",
     "independence": "independent", "babbles": "babble", "babbling": "babble",
     "cries": "cry", "crying": "cry", "responsive": "respond", "responding": "respond",
+    "worried": "worry", "worries": "worry", "worrying": "worry", "worrisome": "worry",
+    "controlling": "control", "controlled": "control", "controls": "control",
+    "argued": "argue", "arguing": "argue", "argument": "argue", "arguments": "argue",
+    "disagreement": "argue", "disagreements": "argue",
+    "parties": "party", "friends": "friend", "safely": "safe", "safety": "safe",
 }  # fmt: skip
 
 

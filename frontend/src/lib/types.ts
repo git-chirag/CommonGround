@@ -22,6 +22,11 @@ export interface Message {
   // Assistant messages only, and only when sources were requested.
   grounding?: Grounding;
   sources?: Source[];
+  /**
+   * Demo mode only. "example" = text written in advance for the demo, NOT a live AI response.
+   * "notice" = an app message explaining that live responses are off. Neither is ever sent to a backend.
+   */
+  kind?: "example" | "notice";
 }
 
 // Must match the backend enum `ParentingStage` (backend/app/prompts.py).
@@ -39,4 +44,5 @@ export type ChatErrorKind =
   | "timeout" // 504 or client-side timeout
   | "failed" // 502 / other server errors
   | "invalid" // 422
-  | "network"; // no response, CORS failure, unreadable body
+  | "network" // no response, CORS failure, unreadable body
+  | "disabled"; // live AI is turned off (demo mode); no request was made

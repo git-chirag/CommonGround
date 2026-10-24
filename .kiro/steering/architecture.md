@@ -41,3 +41,8 @@ The browser never talks to the Kiro CLI; only the FastAPI server does.
 - Kiro CLI sessions: the CLI saves each call's transcript in `~/.kiro/sessions`; the provider deletes the session for its temp dir in a background thread (`KIRO_CLI_DELETE_SESSIONS`, default true).
 
 See `.kiro/specs/frontend-chat-ui/` and `.kiro/specs/family-context-rag/` for the specs.
+
+## Demo scenarios and sharing (added)
+- `frontend/src/lib/family/scenarios.ts`: fictional scenarios (`career`, `party-night`), each with a seed `FamilyState`, names, starters per audience and a static `ConversationPlan`. `store.ts` keeps the active `scenario` id in the saved state; Reset restores that scenario's seed.
+- Sections per audience: Chat (primary), Plan (`shared/ConversationPlan.tsx`, static guidance + shared context only), and Family context / My space.
+- New allow-listed keys: `situation` (private, both audiences) and `shared_messages` (shared). A shared message exists only after an explicit review-and-share action and can be withdrawn.

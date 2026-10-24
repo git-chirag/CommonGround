@@ -14,11 +14,13 @@ interface Props {
   emptyState: (send: (q: string) => void) => ReactNode;
   /** Compact context bar shown above the composer. */
   contextBar: ReactNode;
+  /** Demo mode: live AI is off. */
+  liveDisabled?: boolean;
 }
 
 // The primary surface: a full-height conversation with the composer anchored at the bottom.
 // Colors come from the surrounding data-theme; `variant` only changes shape details.
-export default function ChatPanel({ chat, variant, emptyState, contextBar }: Props) {
+export default function ChatPanel({ chat, variant, emptyState, contextBar, liveDisabled = false }: Props) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { messages, status, errorKind, send, retry, reset } = chat;
   const loading = status === "loading";
@@ -60,7 +62,7 @@ export default function ChatPanel({ chat, variant, emptyState, contextBar }: Pro
             />
           )}
           {contextBar}
-          <ChatInput onSend={send} loading={loading} inputRef={inputRef} variant={variant} />
+          <ChatInput onSend={send} loading={loading} inputRef={inputRef} variant={variant} liveDisabled={liveDisabled} />
           <Disclaimer />
         </div>
       </div>

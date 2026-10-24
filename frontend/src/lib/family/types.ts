@@ -26,6 +26,8 @@ export interface ParentPrivate {
   /** Optional, self-described. Never inferred by the app. */
   worldview: string;
   nurturingGoals: NurturingGoal[];
+  /** Optional: what is happening right now, in the parent's words. Private. */
+  situation?: string;
 }
 
 export interface Reflection {
@@ -39,17 +41,32 @@ export interface TeenPrivate {
   careerIdeas: string;
   aspirations: string;
   goals: Goal[];
+  /** Optional: what is happening right now, in the teen's words. Private. */
+  situation?: string;
   /** Never sent to the assistant and never shown on the parent dashboard. */
   reflections: Reflection[];
+}
+
+/** A note one person reviewed and explicitly approved for the other person to see. */
+export interface SharedMessage {
+  id: string;
+  from: Audience;
+  text: string;
+  /** ISO timestamp of the approval. */
+  approvedAt: string;
 }
 
 export interface SharedContext {
   goals: Goal[];
   routines: string;
   commitments: string;
+  /** Only filled by an explicit review-and-share action. Older saved states may lack it. */
+  messages?: SharedMessage[];
 }
 
 export interface FamilyState {
+  /** Which fictional demo scenario this state came from. Older saved states may lack it. */
+  scenario?: "career" | "party-night";
   parent: ParentPrivate;
   teen: TeenPrivate;
   shared: SharedContext;

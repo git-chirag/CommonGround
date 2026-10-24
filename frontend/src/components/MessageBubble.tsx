@@ -19,9 +19,22 @@ const STYLE = {
 export default function MessageBubble({ message, variant = "parent" }: { message: Message; variant?: "parent" | "teen" }) {
   const isUser = message.role === "user";
   const s = STYLE[variant];
+  if (!isUser && message.kind === "notice") {
+    return (
+      <div role="note" className="flex flex-col items-start">
+        <span className={`mb-1 ml-1 ${s.name}`}>Demo notice</span>
+        <p className="max-w-[88%] rounded-2xl border border-dashed border-line bg-sand px-4 py-3 text-sm text-ink sm:max-w-[80%]">
+          {message.content}
+        </p>
+      </div>
+    );
+  }
+  const example = !isUser && message.kind === "example";
   return (
     <div className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
-      <span className={isUser ? "sr-only" : `mb-1 ml-1 ${s.name}`}>{isUser ? "You said:" : "CommonGround"}</span>
+      <span className={isUser ? "sr-only" : `mb-1 ml-1 ${s.name}`}>
+        {isUser ? "You said:" : example ? "Pre-written example · not a live AI response" : "CommonGround"}
+      </span>
       <p
         className={`max-w-[88%] whitespace-pre-wrap break-words px-4 py-3 leading-relaxed sm:max-w-[80%] ${
           isUser ? s.user : s.assistant

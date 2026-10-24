@@ -7,6 +7,7 @@ import type {
   NurturingGoal,
   ParentPrivate,
   Scope,
+  SharedMessage,
   TeenPrivate,
 } from "./types";
 
@@ -40,15 +41,33 @@ export const FIELD_META: Record<string, { label: string; scope: Scope }> = {
   career_ideas: { label: "Career ideas", scope: "teen_private" },
   aspirations: { label: "Aspirations", scope: "teen_private" },
   personal_goals: { label: "Personal goals (not shared)", scope: "teen_private" },
+  situation: { label: "What's happening (in my words)", scope: "parent_private" },
   shared_goals: { label: "Shared goals", scope: "shared" },
   routines: { label: "Shared routines", scope: "shared" },
   commitments: { label: "Shared commitments", scope: "shared" },
+  shared_messages: { label: "Notes approved for sharing", scope: "shared" },
 };
 
+/** The label of "situation" depends on whose it is. */
+export function fieldMeta(key: string, audience: Audience) {
+  if (key === "situation") {
+    return { label: "What's happening (in my words)", scope: audience === "parent" ? "parent_private" : "teen_private" } as const;
+  }
+  return FIELD_META[key];
+}
+
 // Explicit allow-lists. They mirror backend/app/family_context.py; a key not listed here is never sent.
-export const PARENT_OWN_KEYS = ["intentions", "values", "hopes", "concerns", "worldview", "nurturing_goals"] as const;
-export const TEEN_OWN_KEYS = ["interests", "strengths", "career_ideas", "aspirations", "personal_goals"] as const;
-export const SHARED_KEYS = ["shared_goals", "routines", "commitments"] as const;
+export const PARENT_OWN_KEYS = [
+  "intentions",
+  "values",
+  "hopes",
+  "concerns",
+  "worldview",
+  "nurturing_goals",
+  "situation",
+] as const;
+export const TEEN_OWN_KEYS = ["interests", "strengths", "career_ideas", "aspirations", "personal_goals", "situation"] as const;
+export const SHARED_KEYS = ["shared_goals", "routines", "commitments", "shared_messages"] as const;
 
 /** Keep only allow-listed, non-blank string values. The final filter on everything that leaves the browser. */
 function pick(allowed: readonly string[], rec: Record<string, unknown>): Record<string, string> {
@@ -68,17 +87,27 @@ export interface SharedView {
   goals: Goal[];
   routines: string;
   commitments: string;
+  /** Only notes someone explicitly approved with the review-and-share action. */
+  messages: SharedMessage[];
 }
 
 export function sharedView(state: FamilyState): SharedView {
-  return { goals: visibleSharedGoals(state), routines: state.shared.routines, commitments: state.shared.commitments };
+  return {
+    goals: visibleSharedGoals(state),
+    routines: state.shared.routines,
+    commitments: state.shared.commitments,
+    messages: state.shared.messages ?? [],
+  };
 }
+
+const WHO: Record<Audience, string> = { parent: "the parent", teen: "the teen" };
 
 function sharedFields(shared: SharedView) {
   return pick(SHARED_KEYS, {
     shared_goals: fmtGoals(shared.goals),
     routines: shared.routines,
     commitments: shared.commitments,
+    shared_messages: shared.messages.map((m) => `From ${WHO[m.from]}: ${m.text}`).join(" | "),
   });
 }
 
@@ -97,6 +126,7 @@ export function buildParentContext(parent: ParentPrivate, shared: SharedView): F
     concerns: parent.concerns,
     worldview: parent.worldview,
     nurturing_goals: (parent.nurturingGoals ?? []).map((g) => NURTURING_LABEL[g]).join(", "),
+    situation: parent.situation,
   });
   return payload("parent", own, sharedFields(shared));
 }
@@ -112,6 +142,7 @@ export function buildTeenContext(teen: TeenPrivate, shared: SharedView): FamilyC
     career_ideas: teen.careerIdeas,
     aspirations: teen.aspirations,
     personal_goals: fmtGoals((teen.goals ?? []).filter((g) => !g.shared)),
+    situation: teen.situation,
   });
   return payload("teen", own, sharedFields(shared));
 }

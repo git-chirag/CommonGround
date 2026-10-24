@@ -18,7 +18,15 @@ export type SendProblem = "empty" | "tooLong" | "conversationFull";
  * History lives only in memory (no storage). `options` (stage, profile context, sources switch)
  * is request metadata; the latest value is read at send time.
  */
-export function useChat(options: ChatOptions = {}) {
+/**
+ * Demo mode: given the user's text, return a pre-written example (or null). When set, `send` never calls the network.
+ */
+export type DemoResponder = (text: string) => string | null;
+
+export const DEMO_NOTICE =
+  "Live AI responses are turned off in this public demo, so there is no answer to this question. Suggested questions marked \u201cPre-written example\u201d show a response written in advance.";
+
+export function useChat(options: ChatOptions & { demo?: DemoResponder | null } = {}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [status, setStatus] = useState<ChatStatus>("idle");
   const [errorKind, setErrorKind] = useState<ChatErrorKind | null>(null);
@@ -63,6 +71,16 @@ export function useChat(options: ChatOptions = {}) {
       if (messages.length + 1 > MAX_MESSAGES || total > MAX_TOTAL_CHARS) return "conversationFull";
 
       const history: Message[] = [...messages, { role: "user", content: text }];
+      const demo = optionsRef.current.demo;
+      if (demo) {
+        // Demo mode: answer locally and synchronously. No request, no loading state.
+        const example = demo(text);
+        setMessages([
+          ...history,
+          example ? { role: "assistant", content: example, kind: "example" } : { role: "assistant", content: DEMO_NOTICE, kind: "notice" },
+        ]);
+        return null;
+      }
       setMessages(history); // show the user's bubble immediately
       void run(history);
       return null;
@@ -72,7 +90,7 @@ export function useChat(options: ChatOptions = {}) {
 
   // Resend the same history; the user's message is already in it (no duplicate).
   const retry = useCallback(() => {
-    if (inFlight.current || messages.length === 0) return;
+    if (inFlight.current || messages.length === 0 || optionsRef.current.demo) return;
     void run(messages);
   }, [messages, run]);
 

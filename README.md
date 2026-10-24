@@ -11,16 +11,31 @@ emergencies**, and its answers have not been clinically reviewed.
 - **Small real RAG pipeline** over a curated library (UNICEF, Harvard Center on the Developing Child, CDC). Answers show the sources actually retrieved, or say none matched. Sources are general guidance, not evidence about a particular person.
 - FastAPI backend with a provider-independent LLM interface and a local **Kiro CLI** provider; limits, timeouts, CORS allow-list, no conversation logging, and automatic deletion of the CLI's saved session transcripts.
 
-## Demo script (about 2 minutes, all fictional)
-1. Parent view opens on the chat. Click **Understand a perspective** ("My teen has become withdrawn lately..."). Note the answer offers possibilities with uncertainty and suggests a gentle opener.
-2. **New conversation** -> **Prepare a conversation** (career choice when hopes differ). The answer shows retrieved sources (UNICEF, CDC) with links.
-3. Open the "Personalised with..." bar above the composer to see exactly which notes are sent, then **Family context** to see/edit them. Only goals Sam chose to share appear there.
-4. Switch to **Teen view**: different identity, its own empty chat (the parent's conversation is not there). Try **Prepare for a hard talk**; toggle **Dark**. In **My space**, untick "Share with family" on a goal and switch back to see it vanish from the parent side.
-5. Untick **Use my profile notes** to show that only the question is sent.
-6. **Reset demo** to repeat.
+## Demo script (all fictional)
+
+### Guided scenario: Party Night (about 3 minutes)
+A teenage daughter (Maya) wants to wear an outfit she likes to a party. Her father (David) objects because he worries
+about how other people might behave, it escalates, and she leaves upset. The point is not who is right: it is how each
+of them can understand possible perspectives and prepare for a real conversation.
+
+1. Choose **Demo scenario: Party Night**, then **Reset demo**.
+2. **Teen view** -> click **Explain my side**. Answer shows UNICEF sources. Open the "Personalised with..." bar: only
+   Maya's notes and the shared goals are sent.
+3. Teen **Plan** -> **Fill in demo example** (Maya's note about feeling she had to wear a short dress like her friends,
+   while also liking it) -> **Review before sharing** -> **Share this with David**. Nothing crosses before this click.
+4. **Parent view** -> **Plan**: David sees exactly Maya's approved note under "Shared with you by Maya", nothing else.
+5. Parent **Chat** -> click **Repair after an argument**. The answer can now take the pressure Maya chose to share into
+   account, apologises for *how* the concern came out, keeps safety planning separate from her clothing, and shows a
+   UNICEF source.
+6. **Reset demo** restores the fictional data, removes shared notes and clears both chats.
+
+### Career conversation (the original example)
+Choose **Demo scenario: Career conversation**, then try **Understand a perspective** or **Prepare a conversation** in
+the parent view and **Prepare for a hard talk** in the teen view.
 
 ## Privacy boundaries and limits (please read)
 - The browser holds **both** example profiles in `localStorage`; the view switch is a demo control, **not a login**. What the boundary guarantees is *what is sent to the assistant*, enforced in `buildFamilyContext` (frontend, tested) and per-audience allow-lists (backend, tested). **It is not secure isolation between real accounts.** Real use would need authentication and server-side storage.
+- Nothing crosses between the two people unless it is a shared goal or routine, a teen goal the teen ticked to share, or a note someone wrote, reviewed and approved with **Share** on the Plan page (withdrawable). Drafts are never stored or sent.
 - Privacy is enforced by what each request *contains* (separate audience builders, allow-lists on both ends, separate chat histories), not by asking the model to keep secrets. This is tested at the browser request and at the exact CLI argv.
 - The profile notes and your messages go to the model through the local Kiro CLI, under your Kiro account. The CLI saves each call as a local session transcript; the backend deletes those after each call by default. Do not enter real family details in this prototype.
 - Retrieved sources are **related reading, not proof** that each sentence of an answer is supported, and the model may cite imperfectly (unknown `[S#]` markers are stripped). Sources are *our condensed summaries*; check the original.

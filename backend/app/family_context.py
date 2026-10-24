@@ -28,6 +28,7 @@ PARENT_PRIVATE: dict[str, str] = {
     "concerns": "Concerns",
     "nurturing_goals": "Skills the parent wants to nurture",
     "worldview": "Family worldview or cultural values (self-described by the parent)",
+    "situation": "What is happening right now (in the parent's own words)",
 }
 TEEN_PRIVATE: dict[str, str] = {
     "interests": "Interests",
@@ -35,11 +36,14 @@ TEEN_PRIVATE: dict[str, str] = {
     "career_ideas": "Career ideas (self-described by the teen)",
     "personal_goals": "Personal goals",
     "aspirations": "Aspirations",
+    "situation": "What is happening right now (in the teen's own words)",
 }
 SHARED: dict[str, str] = {
     "shared_goals": "Shared family goals",
     "routines": "Shared routines",
     "commitments": "Shared commitments",
+    # Text a person reviewed and explicitly approved for the other person to see.
+    "shared_messages": "Notes each person explicitly approved for sharing",
 }
 
 Audience = Literal["parent", "teen"]

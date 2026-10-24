@@ -8,5 +8,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
     css: false,
+    // Existing suites exercise the live-backend path with a mocked fetch. Demo-mode tests opt in via vi.stubEnv.
+    env: { NEXT_PUBLIC_DEMO_MODE: "false" },
   },
 });

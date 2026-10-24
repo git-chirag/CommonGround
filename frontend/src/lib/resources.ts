@@ -9,6 +9,18 @@ export interface Resource {
 
 export const RESOURCES: Resource[] = [
   {
+    title: "Teens and risky behaviour",
+    publisher: "UNICEF Parenting",
+    url: "https://www.unicef.org/parenting/mental-health/teens-risky-behaviours",
+    note: "Being a partner in your teen's safety, and planning ahead for parties and time with friends.",
+  },
+  {
+    title: "Tips for Parents and Caregivers to Support Adolescents",
+    publisher: "UNICEF India",
+    url: "https://www.unicef.org/india/stories/tips-parents-and-caregivers-support-adolescents",
+    note: "Listening without judging, handling disagreements calmly, and respecting growing independence.",
+  },
+  {
     title: "11 tips for communicating with your teen",
     publisher: "UNICEF",
     url: "https://www.unicef.org/eca/11-tips-communicating-your-teen",

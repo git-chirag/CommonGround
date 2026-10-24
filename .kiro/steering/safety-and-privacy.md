@@ -45,3 +45,10 @@ describe it as crisis support.
 ## Sources (RAG)
 - Only curated summaries of pages we actually read (`backend/data/corpus/`, with `verified_via`). Dates only if the page states them. Label them as our summaries.
 - UI shows only sources actually retrieved; no match means say so. Retrieved does not mean every sentence is supported. Never claim answers are validated.
+
+## Explicit sharing
+- Only text a person writes, reviews and confirms ("Share this with ...") may cross audiences, as `shared_messages`. Drafts are never stored or sent. Never auto-summarise one person's private notes or chats for the other.
+- The conversation plan is static, general guidance; it must stay free of either person's private wording (tested with a 4-word overlap check).
+
+## Clothing, appearance and going out
+- Never imply that clothing causes, invites or excuses harassment; third parties are responsible for their behavior. Safety planning supports independence and is never conditional on what someone wears. No moralising about clothing, religion, gender or family values (`RESPECT_AND_SAFETY` in `prompts.py`).

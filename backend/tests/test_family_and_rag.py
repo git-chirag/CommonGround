@@ -204,3 +204,31 @@ def test_short_followup_uses_previous_question_for_retrieval():
     ]
     data = c.post("/api/chat", json={"messages": msgs, "retrieve_sources": True}).json()
     assert data["grounding"] == "retrieved"
+
+
+# --- Party Night retrieval (real curated UNICEF pages) -----------------------------------------
+
+PARTY_PARENT = (
+    "I argued with my daughter about what she was wearing to a party. I was worried about how some people "
+    "might treat her, but I came across as controlling. Now she's left upset. How can I repair this?"
+)
+PARTY_TEEN = (
+    "My dad got upset about my party outfit, and it felt like he didn't trust me. I left angry. How can I "
+    "explain my side without starting another argument?"
+)
+
+
+@pytest.mark.parametrize("question", [PARTY_PARENT, PARTY_TEEN])
+def test_party_night_prompts_retrieve_a_unicef_source(question):
+    hits = get_retriever().retrieve(question)
+    assert hits and all(h.source.url.startswith("https://www.unicef.org/") for h in hits[:1])
+
+
+def test_party_parent_prompt_no_longer_matches_executive_function():
+    ids = [p.source.id for p in get_retriever().retrieve(PARTY_PARENT)]
+    assert "harvard-executive-function" not in ids
+
+
+def test_party_safety_question_retrieves_risky_behaviour_page():
+    ids = [p.source.id for p in get_retriever().retrieve("How can I talk about staying safe at a party?")]
+    assert "unicef-teens-risky-behaviour" in ids

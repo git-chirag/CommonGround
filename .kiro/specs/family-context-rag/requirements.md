@@ -16,3 +16,10 @@
 12. Automated tests inspect the complete outbound provider request (CLI argv) and the browser request body to prove private fields and chat messages cannot cross audiences, including shared goals and the context toggle.
 13. Perspective support: uncertainty-aware possibilities, behavior is not proof of cause, gentle openers, no pressure on teens to disclose, risk -> point to real-world help without diagnosing.
 14. Sources state that retrieved guidance is general and not evidence of what a particular family member is experiencing.
+
+## Iteration 3: Party Night scenario and explicit sharing
+15. A selectable, resettable fictional scenario "Party Night" with parent-private, teen-private and shared context (shared states only what both agreed, never private specifics; the teen's own preference is included, not only peer pressure).
+16. Guided prompts per audience and a static conversation plan (possible interpretations, openers, 2-3 open questions, agreement template for transport, check-ins and feeling unsafe, pause reminder).
+17. Explicit review-and-share: drafts are never stored or sent; approved notes reach both views and both requests; withdrawal removes them.
+18. Prompt rule: no implication that clothing causes harassment; safety planning supports independence; another person's experience is phrased as a possibility.
+19. Teen chat stays dominant on desktop and mobile; My space keeps all profile features.

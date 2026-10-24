@@ -13,15 +13,17 @@ interface Props {
   loading: boolean;
   inputRef: Ref<HTMLTextAreaElement>;
   variant?: "parent" | "teen";
+  /** Live AI is off: the composer is disabled and explains why. */
+  liveDisabled?: boolean;
 }
 
-export default function ChatInput({ onSend, loading, inputRef, variant = "parent" }: Props) {
+export default function ChatInput({ onSend, loading, inputRef, variant = "parent", liveDisabled = false }: Props) {
   const teen = variant === "teen";
   const [text, setText] = useState("");
   const [problem, setProblem] = useState<SendProblem | null>(null);
 
   const submit = () => {
-    if (loading) return;
+    if (loading || liveDisabled) return;
     const result = onSend(text);
     setProblem(result);
     if (result === null) setText(""); // accepted: clear; refused: keep the text
@@ -59,26 +61,31 @@ export default function ChatInput({ onSend, loading, inputRef, variant = "parent
             if (problem) setProblem(null);
           }}
           onKeyDown={onKeyDown}
-          placeholder="Share what's on your mind…"
+          placeholder={liveDisabled ? "Live AI responses are off in this demo" : "Share what's on your mind…"}
+          disabled={liveDisabled}
           aria-describedby="message-hint"
           aria-invalid={problem !== null}
-          className={`field-sizing-content max-h-40 min-h-14 flex-1 resize-none bg-paper px-4 py-3 text-ink ${
+          className={`field-sizing-content max-h-40 min-h-14 flex-1 resize-none bg-paper px-4 py-3 text-ink disabled:cursor-not-allowed disabled:opacity-70 ${
             teen ? "rounded-3xl border-2 border-ink" : "rounded-2xl border border-line"
           }`}
         />
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || liveDisabled}
           className={`min-h-14 bg-sage px-5 text-white hover:bg-sage-dark disabled:opacity-60 ${
             teen ? "rounded-3xl border-2 border-ink font-black" : "rounded-2xl font-medium"
           }`}
         >
-          {loading ? "Sending…" : "Send"}
+          {liveDisabled ? "Live AI off" : loading ? "Sending…" : "Send"}
         </button>
       </div>
       <div id="message-hint" className="flex justify-between gap-2 px-1 text-xs text-muted">
         <span role={problem ? "alert" : undefined} className={problem ? "text-clay" : undefined}>
-          {problem ? PROBLEM_TEXT[problem] : "Enter to send, Shift+Enter for a new line"}
+          {problem
+            ? PROBLEM_TEXT[problem]
+            : liveDisabled
+              ? "Interactive prototype: typing is off because live AI is unavailable. Try a suggested question above."
+              : "Enter to send, Shift+Enter for a new line"}
         </span>
         {nearLimit && (
           <span className={text.length > MAX_MESSAGE_CHARS ? "text-clay" : undefined}>

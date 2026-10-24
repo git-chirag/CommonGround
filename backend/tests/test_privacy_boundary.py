@@ -289,3 +289,60 @@ def test_app_factory_enables_session_cleanup_by_default(monkeypatch):
     monkeypatch.setenv("KIRO_CLI_DELETE_SESSIONS", "maybe")
     with pytest.raises(ValueError):
         load_settings()
+
+
+# --- Party Night scenario: new keys keep the same boundary ---------------------------------
+
+DAD_SITUATION = "DAD-SITUATION-3J7"
+TEEN_SITUATION = "TEEN-SITUATION-9P4"
+APPROVED_NOTE = "APPROVED-NOTE-5T2"
+
+
+def test_situation_reaches_only_its_own_audience(stack):
+    client, rec = stack
+    parent = parent_request()
+    parent["family_context"]["own"]["situation"] = DAD_SITUATION
+    teen = teen_request()
+    teen["family_context"]["own"]["situation"] = TEEN_SITUATION
+    assert client.post("/api/chat", json=parent).status_code == 200
+    assert client.post("/api/chat", json=teen).status_code == 200
+    p, t = rec.prompts
+    assert DAD_SITUATION in p and TEEN_SITUATION not in p
+    assert TEEN_SITUATION in t and DAD_SITUATION not in t
+
+
+def test_approved_shared_message_reaches_both_audiences(stack):
+    client, rec = stack
+    for body in (parent_request(), teen_request()):
+        body["family_context"]["shared"]["shared_messages"] = f"From the teen: {APPROVED_NOTE}"
+        assert client.post("/api/chat", json=body).status_code == 200
+    assert all(APPROVED_NOTE in p for p in rec.prompts)
+    assert all("explicitly approved for sharing" in p for p in rec.prompts)
+
+
+@pytest.mark.parametrize("key", ["draft", "share_draft", "teen_situation", "parent_situation"])
+def test_drafts_and_cross_scope_keys_are_rejected(stack, key):
+    client, rec = stack
+    body = parent_request()
+    body["family_context"]["shared"][key] = "UNAPPROVED-DRAFT"
+    r = client.post("/api/chat", json=body)
+    assert r.status_code == 422 and rec.calls == [] and "UNAPPROVED-DRAFT" not in r.text
+
+
+@pytest.mark.parametrize("make", [parent_request, teen_request])
+def test_respect_and_safety_rule_is_in_every_family_prompt(stack, make):
+    client, rec = stack
+    client.post("/api/chat", json=make())
+    prompt = rec.prompts[0]
+    assert "never suggest that what someone wears" in prompt
+    assert "Do not make clothing a condition of being safe" in prompt
+    assert "supports independence, not as a punishment" in prompt
+
+
+@pytest.mark.parametrize("make", [parent_request, teen_request])
+def test_other_persons_experience_is_framed_as_possibility(stack, make):
+    client, rec = stack
+    client.post("/api/chat", json=make())
+    prompt = rec.prompts[0]
+    assert "Never state another person's feelings, thoughts, wishes or motives as fact" in prompt
+    assert "how they experienced a moment" in prompt

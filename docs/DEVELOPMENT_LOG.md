@@ -82,3 +82,29 @@ Only things that actually happened.
 - Reply-quality checks are keyword heuristics on single samples, not an evaluation.
 - Keyboard-only and screen-reader passes not done by hand.
 - The safety line is not a crisis protocol.
+
+## Milestone 5: Party Night guided scenario and explicit sharing
+**Kiro features used:** steering (architecture, privacy) and the `family-context-rag` spec (iteration 3). No hooks, MCP or powers.
+
+**Finding at inspection:** the teen view was already chat-first from Milestone 4 (full-height chat, composer pinned, profile features behind "My space"). Kept as is; verified again in the browser.
+
+**Work done**
+- `scenarios.ts`: fictional scenarios with seeds, names, starters and a static conversation plan. Scenario picker; Reset restores the active scenario.
+- Plan section with review-and-share (draft -> review -> share; withdraw). New allow-listed keys `situation` (private) and `shared_messages` (shared) in frontend and backend.
+- Prompt: `RESPECT_AND_SAFETY` (no victim-blaming, safety supports independence, apologise for how, not for caring) and possibility phrasing for another person's experience.
+- Tests: backend +10 (CLI argv for new keys, rejected draft keys, prompt rules); frontend +16 (scenario data, both audiences' requests, on-screen checks across all sections, plan contents, 4-word paraphrase check, share/withdraw, reset). Two deliberate leak mutations (teen situation into parent payload; draft shared without review) each made 3 tests fail; restored files verified identical.
+
+**Checks run (2026-10-24)**
+- Backend: pytest 118 passed; ruff clean. Frontend: eslint, tsc clean; Vitest 78 passed; next build ok.
+- Real browser + real Kiro CLI (party flow): 23/24 on the final run. All privacy, layout (teen chat 83% desktop, 66% on 375px), plan, share and reset checks passed.
+
+**Not verified / limits**
+- The failing check: parent replies did not consistently phrase the daughter's experience as a possibility (e.g. "it sounds like, felt controlled"). Tightened the prompt; still inconsistent across 3 runs. This is model behavior, not a data leak (the request contained no teen data).
+- Reply checks are keyword heuristics on single samples. No expert review.
+- The teen reply quoted the teen's own notes back to her; that is her own data in her own view, but it can feel surprising.
+
+### Milestone 5 follow-up: demo sources and the peer-pressure share
+- Corpus: added two UNICEF pages, both read in full on 2026-10-24: "Teens and risky behaviour" (UNICEF Parenting) and "Tips for Parents and Caregivers to Support Adolescents" (UNICEF India). The summaries state only what those pages say.
+- Retrieval: aliases (worried/controlling/argued/disagreement/parties...) and filler stopwords ("came across", "people", "now"). Side effect found and fixed: the parent prompt had been matching Harvard "Executive Function" on "control" + "people".
+- Maya's private situation now includes feeling she had to wear a short dress like her friends, alongside liking it. David learns this only if Maya shares it on the Plan page; a "Fill in demo example" button fills her draft only.
+- Checks: pytest 122 passed, ruff clean; Vitest 79 passed, eslint and tsc clean, build ok. Real CLI: 7/7 (both prompts return UNICEF sources; David's request carries only Maya's approved note; his answer uses it).

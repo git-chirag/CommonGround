@@ -1,16 +1,16 @@
 import { NURTURING_LABEL, visibleSharedGoals } from "@/lib/family/context";
-import { PARENT_NAME, SEED_FAMILY, TEEN_NAME } from "@/lib/family/seed";
+import type { Scenario } from "@/lib/family/scenarios";
 import type { FamilyState, NurturingGoal } from "@/lib/family/types";
 import { RESOURCES } from "@/lib/resources";
 import StagePicker from "../StagePicker";
 import FieldGroupCard from "../shared/FieldGroupCard";
 import GoalList from "../shared/GoalList";
 import ScopeBadge from "../shared/ScopeBadge";
-import { CAREER_QUESTION } from "./ParentWelcome";
 
 interface Props {
   state: FamilyState;
   update: (fn: (s: FamilyState) => FamilyState) => void;
+  scenario: Scenario;
   /** Switch to the chat and send this question. */
   onAsk: (text: string) => void;
 }
@@ -27,7 +27,8 @@ const h2 = "font-serif text-2xl text-forest";
 const section = "border-t border-line pt-6";
 
 // Secondary page: the detailed, optional notes that personalise the parent's chat.
-export default function ParentContextPage({ state, update, onAsk }: Props) {
+export default function ParentContextPage({ state, update, scenario, onAsk }: Props) {
+  const { parentName: PARENT_NAME, teenName: TEEN_NAME, seed: SEED_FAMILY } = scenario;
   const p = state.parent;
   const setParent = (patch: Partial<FamilyState["parent"]>) => update((s) => ({ ...s, parent: { ...s.parent, ...patch } }));
   const toggleGoal = (g: NurturingGoal) =>
@@ -62,15 +63,35 @@ export default function ParentContextPage({ state, update, onAsk }: Props) {
               { key: "values", label: "Values and principles" },
               { key: "hopes", label: "Hopes", help: "Your hopes are yours. Your teen's own aspirations stay their own." },
               { key: "concerns", label: "Concerns" },
+              {
+                key: "situation",
+                label: "What's happening right now (optional)",
+                help: "In your own words. Private to you.",
+              },
             ]}
-            values={{ intentions: p.intentions, values: p.values, hopes: p.hopes, concerns: p.concerns }}
-            onSave={(v) => setParent({ intentions: v.intentions, values: v.values, hopes: v.hopes, concerns: v.concerns })}
+            values={{
+              intentions: p.intentions,
+              values: p.values,
+              hopes: p.hopes,
+              concerns: p.concerns,
+              situation: p.situation ?? "",
+            }}
+            onSave={(v) =>
+              setParent({
+                intentions: v.intentions,
+                values: v.values,
+                hopes: v.hopes,
+                concerns: v.concerns,
+                situation: v.situation,
+              })
+            }
             onReset={() =>
               setParent({
                 intentions: SEED_FAMILY.parent.intentions,
                 values: SEED_FAMILY.parent.values,
                 hopes: SEED_FAMILY.parent.hopes,
                 concerns: SEED_FAMILY.parent.concerns,
+                situation: SEED_FAMILY.parent.situation ?? "",
               })
             }
           />
@@ -198,10 +219,10 @@ export default function ParentContextPage({ state, update, onAsk }: Props) {
           </ul>
           <button
             type="button"
-            onClick={() => onAsk(CAREER_QUESTION)}
+            onClick={() => onAsk(scenario.parentDemoPrompt)}
             className="min-h-11 rounded-full bg-sage px-5 text-sm font-medium text-white hover:bg-sage-dark"
           >
-            Help me prepare: a career conversation
+            {scenario.prepareLabel}
           </button>
         </section>
 

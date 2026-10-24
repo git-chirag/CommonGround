@@ -1,3 +1,4 @@
+import { isDemoMode } from "./config";
 import { REQUEST_TIMEOUT_MS } from "./limits";
 import type { FamilyContextPayload } from "./family/types";
 import type { ChatErrorKind, Grounding, Message, ParentingStage, Source } from "./types";
@@ -74,6 +75,8 @@ export async function sendChat(
   options: ChatOptions = {},
   timeoutMs: number = REQUEST_TIMEOUT_MS,
 ): Promise<ChatResult> {
+  // Second guard behind the UI: in demo mode nothing is ever sent, to localhost or anywhere else.
+  if (isDemoMode()) throw new ChatError("disabled");
   // Stage, profile context and the sources switch travel as request metadata, never as messages.
   // Only role/content are sent for each message (not the sources we attached for display).
   const body: Record<string, unknown> = { messages: messages.map(({ role, content }) => ({ role, content })) };

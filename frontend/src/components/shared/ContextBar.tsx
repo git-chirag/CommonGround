@@ -1,4 +1,4 @@
-import { buildFamilyContext, FIELD_META } from "@/lib/family/context";
+import { buildFamilyContext, fieldMeta } from "@/lib/family/context";
 import type { Audience, FamilyState } from "@/lib/family/types";
 import ScopeBadge from "./ScopeBadge";
 
@@ -8,12 +8,14 @@ interface Props {
   enabled: boolean;
   onToggle: (enabled: boolean) => void;
   onEdit: () => void;
+  /** Demo mode: nothing is sent; the bar shows what WOULD be sent with live AI. */
+  liveDisabled?: boolean;
 }
 
 const clip = (s: string) => (s.length > 120 ? `${s.slice(0, 120)}…` : s);
 
 // Compact, expandable view of exactly what buildFamilyContext() will send with the next message.
-export default function ContextBar({ audience, state, enabled, onToggle, onEdit }: Props) {
+export default function ContextBar({ audience, state, enabled, onToggle, onEdit, liveDisabled = false }: Props) {
   const ctx = enabled ? buildFamilyContext(state, audience) : null;
   const own = ctx ? Object.entries(ctx.own) : [];
   const shared = ctx ? Object.entries(ctx.shared) : [];
@@ -51,16 +53,25 @@ export default function ContextBar({ audience, state, enabled, onToggle, onEdit 
           <div className="max-h-56 overflow-y-auto pb-2">
             {entries.length > 0 && (
               <ul className="flex flex-col gap-2">
-                {entries.map(([key, value]) => (
+                {entries.map(([key, value]) => {
+                  const meta = fieldMeta(key, audience);
+                  return (
                   <li key={key} className="flex flex-col gap-0.5">
                     <span className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium">{FIELD_META[key]?.label ?? key}</span>
-                      {FIELD_META[key] && <ScopeBadge scope={FIELD_META[key].scope} />}
+                      <span className="font-medium">{meta?.label ?? key}</span>
+                      {meta && <ScopeBadge scope={meta.scope} />}
                     </span>
                     <span className="text-muted">{clip(value)}</span>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
+            )}
+            {liveDisabled && (
+              <p className="mt-2 font-medium">
+                Live AI is off in this demo, so nothing is sent anywhere. This list shows what would be sent with live
+                AI turned on.
+              </p>
             )}
             <p className="mt-2 text-muted">
               Never sent: the {other}&apos;s private notes, the {other}&apos;s chats, and the teen&apos;s private reflections.

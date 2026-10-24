@@ -12,4 +12,7 @@
 - [x] 10. Perspective-support and risk lines in the prompt
 - [x] 11. CLI session-transcript cleanup + cross-session recall probe
 - [x] 12. Real-browser run (21 checks) and docs
-- [ ] 13. Future: a reviewed crisis protocol (beyond the prompt line), embeddings/vector store, expert review of the corpus, hosted provider, real authentication
+- [x] 13. Scenario module + Party Night seed; scenario picker; Reset restores current scenario
+- [x] 14. Conversation plan page + review-and-share; `situation` and `shared_messages` keys on both ends
+- [x] 15. RESPECT_AND_SAFETY + possibility-phrasing prompt rules; tests (backend argv, frontend payload, plan overlap, mutation checks)
+- [ ] 16. Future: a reviewed crisis protocol (beyond the prompt line), embeddings/vector store, expert review of the corpus, hosted provider, real authentication
